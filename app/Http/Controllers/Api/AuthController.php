@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
@@ -11,32 +12,21 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'phone' => 'required',
-            'pin'   => 'required',
+            'email'    => 'required|email',
+            'password' => 'required',
         ]);
-        $user = User::where('phone', $request->phone)->first();
-        // Verificamos el PIN (en producción usa Hash::check si guardas el pin hasheado)
-        if (! $user || $user->pin !== $request->pin) {
+
+        $user = User::where('email', $request->email)->first();
+
+        if (! $user || ! \Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
             return response()->json(['message' => 'Credenciales inválidas'], 401);
         }
+
         // Crear Access Token (Corto: 15 mins)
         $accessToken = $user->createToken('access_token', ['*'], now()->addMinutes(15))->plainTextToken;
 
         // Crear Refresh Token (Largo: 7 días)
         $refreshToken = $user->createToken('refresh_token', ['*'], now()->addDays(7))->plainTextToken;
-
-        // Guardar Refresh Token en Cookie HttpOnly
-        /* $cookie = cookie(
-                'refresh_token',
-                $refreshToken,
-                60 * 24 * 7, // minutos
-                null,
-                null,
-                false, // true en producción con HTTPS
-                true,  // HttpOnly
-                false,
-                'Lax'
-            ); */
 
         $cookie = cookie(
             'refresh_token',
@@ -44,8 +34,8 @@ class AuthController extends Controller
             60 * 24 * 7,                        // 1 semana
             '/',                                // Path
             null,                               // Domain
-            config('app.env') !== 'local', // Secure: Solo true en producción (HTTPS)
-            true,                               // HttpOnly: SIEMPRE true por seguridad
+            config('app.env') !== 'local',      // Secure
+            true,                               // HttpOnly
             false,                              // Raw
             'Lax'                               // SameSite
         );

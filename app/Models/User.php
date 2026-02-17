@@ -20,13 +20,12 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'email',
         'phone',
-        'pin',
-        'city',
+        'password',
         'role',
-        'status',
-        'points',
-        'phone_verified_at',
+        'avatar',
+        'email_verified_at',
     ];
 
     /**
@@ -35,7 +34,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $hidden = [
-        'pin',
+        'password',
         'remember_token',
     ];
 
@@ -52,26 +51,9 @@ class User extends Authenticatable
         ];
     }
 
-    public function wallet()
+    // Relationships
+    public function driverProfile()
     {
-        return $this->hasOne(Wallet::class);
-    }
-    public function assignments()
-    {
-        return $this->hasMany(OrderAssignment::class);
-    }
-    public function transactions()
-    {
-        return $this->hasMany(Transaction::class);
-    }
-    public function orders()
-    {
-        return $this->hasMany(Order::class);
-    }
-
-    /* Total drivers active */
-    public function getDriversActiveAttribute()
-    {
-        return $this->where('role', 'driver')->where('status', 'active')->count();
+        return $this->hasOne(Driver::class, 'user_id');
     }
 }

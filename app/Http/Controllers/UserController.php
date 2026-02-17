@@ -2,10 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\UserStoreRequest;
-use App\Http\Requests\UserUpdateRequest;
+use Illuminate\Http\Request;
 use App\Models\User;
-use App\Models\Wallet;
 
 class UserController extends Controller
 {
@@ -14,42 +12,50 @@ class UserController extends Controller
         return response()->json(User::all());
     }
 
-    public function store(UserStoreRequest $request)
+    public function store(Request $request)
     {
-        $user = User::create($request->validated());
-        /* Create Wallet */
-        Wallet::create([
-            'user_id' => $user->id,
-            'balance' => 0,
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:6',
+            'role' => 'in:admin,worker,driver,client',
+            'phone' => 'nullable|string|max:20',
         ]);
+
+        $user = User::create($validated);
+
         return response()->json([
             'message' => 'Usuario creado correctamente',
             'user' => $user
         ], 201);
     }
 
-
-
     public function show(User $user)
     {
-        $wallet = Wallet::where('user_id', $user->id)->first();
         return response()->json([
-            'user' => $user,
-            'wallet' => $wallet
+            'user' => $user->load('driverProfile'),
         ]);
     }
 
-    public function update(UserUpdateRequest $request, User $user)
+    public function update(Request $request, User $user)
     {
-        // Solo actualizamos los campos validados
-        $data = $request->validated();
+        $validated = $request->validate([
+            'name' => 'string|max:255',
+            'email' => 'email|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:6', // Optional update
+            'role' => 'in:admin,worker,driver,client',
+            'phone' => 'nullable|string|max:20',
+        ]);
 
-        // Si el pin viene vacío en el update, lo quitamos para no sobreescribir con null
-        if (empty($data['pin'])) {
-            unset($data['pin']);
+        if (isset($validated['password'])) {
+            $user->password = $validated['password']; // Casts will hash it
         }
 
-        $user->update($data);
+        $user->update(collect($validated)->except('password')->toArray());
+
+        if (isset($validated['password'])) {
+            $user->save();
+        }
 
         return response()->json([
             'message' => 'Usuario actualizado con éxito',
