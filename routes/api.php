@@ -26,7 +26,10 @@ use Illuminate\Support\Facades\Route;
 
 // Public Routes
 Route::post('/auth/login', [AuthController::class, 'login']);
+Route::post('/auth/logout', [AuthController::class, 'logout']);
 Route::post('/auth/refresh', [AuthController::class, 'refresh']);
+
+
 
 // Public Data
 Route::get('/offices', [OfficeController::class, 'index']); // Public list of offices

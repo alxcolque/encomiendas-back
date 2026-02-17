@@ -26,7 +26,9 @@ class ShipmentResource extends JsonResource
             'price' => $this->price,
             'origin_office' => new OfficeResource($this->whenLoaded('originOffice')),
             'destination_office' => new OfficeResource($this->whenLoaded('destinationOffice')),
-            'events' => ShipmentEventResource::collection($this->whenLoaded('events')),
+            'events' => ShipmentEventResource::collection($this->whenLoaded('events', function () {
+                return $this->events->sortByDesc('timestamp');
+            })),
             'invoice' => new InvoiceResource($this->whenLoaded('invoice')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

@@ -1,6 +1,6 @@
 services:
   database:
-    image: mysql
+    image: mysql:8.0
     container_name: kolmox
     restart: always
     environment:
