@@ -25,6 +25,7 @@ class User extends Authenticatable
         'pin',
         'role',
         'avatar',
+        'avatar_key',
         'email_verified_at',
     ];
 
