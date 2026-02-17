@@ -22,7 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'phone',
-        'password',
+        'pin',
         'role',
         'avatar',
         'email_verified_at',
@@ -34,7 +34,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $hidden = [
-        'password',
+        'pin',
         'remember_token',
     ];
 
@@ -47,8 +47,13 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'pin' => 'hashed',
         ];
+    }
+
+    public function getAuthPasswordName()
+    {
+        return 'pin';
     }
 
     // Relationships

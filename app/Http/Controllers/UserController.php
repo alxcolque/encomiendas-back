@@ -27,8 +27,8 @@ class UserController extends Controller
     {
         $validated = $request->validated();
 
-        if (array_key_exists('password', $validated) && is_null($validated['password'])) {
-            unset($validated['password']);
+        if (array_key_exists('pin', $validated) && is_null($validated['pin'])) {
+            unset($validated['pin']);
         }
 
         $user->update($validated);

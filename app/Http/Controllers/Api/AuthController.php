@@ -12,13 +12,13 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email'    => 'required|email',
-            'password' => 'required',
+            'phone'    => 'required|string',
+            'pin'      => 'required',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('phone', $request->phone)->first();
 
-        if (! $user || ! \Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
+        if (! $user || ! \Illuminate\Support\Facades\Hash::check($request->pin, $user->pin)) {
             return response()->json(['message' => 'Credenciales inválidas'], 401);
         }
 
