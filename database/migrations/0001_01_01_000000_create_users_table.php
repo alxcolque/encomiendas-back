@@ -14,16 +14,12 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('email')->nullable()->unique(); // Nullable como pediste
-            $table->string('phone')->unique();
-            $table->string('pin'); // Para tu login de 4 dígitos
-            $table->string('city')->default('Oruro');
-            $table->enum('role', ['admin', 'driver'])->default('driver');
-            $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
-            $table->integer('points')->default(0);
-            $table->timestamp('phone_verified_at')->nullable();
+            $table->string('email')->unique();
+            $table->string('phone', 20)->nullable();
+            $table->string('password');
+            $table->enum('role', ['admin', 'worker', 'driver', 'client'])->default('client');
+            $table->string('avatar')->nullable();
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password')->nullable(); // Para compatibilidad con Laravel
             $table->rememberToken();
             $table->timestamps();
         });
