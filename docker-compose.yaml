@@ -1,0 +1,14 @@
+services:
+  database:
+    image: mysql
+    container_name: delivery
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: delivery_db
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin123
+    ports:
+      - "3309:3306"
+    volumes:
+      - ./mysql:/var/lib/mysql
