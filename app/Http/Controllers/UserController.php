@@ -2,72 +2,46 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
     public function index()
     {
-        return response()->json(User::all());
+        return new \App\Http\Resources\User\UserCollection(User::all());
     }
 
-    public function store(Request $request)
+    public function store(\App\Http\Requests\UserStoreRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6',
-            'role' => 'in:admin,worker,driver,client',
-            'phone' => 'nullable|string|max:20',
-        ]);
-
-        $user = User::create($validated);
-
-        return response()->json([
-            'message' => 'Usuario creado correctamente',
-            'user' => $user
-        ], 201);
+        $user = User::create($request->validated());
+        return new \App\Http\Resources\User\UserResource($user);
     }
 
     public function show(User $user)
     {
-        return response()->json([
-            'user' => $user->load('driverProfile'),
-        ]);
+        return new \App\Http\Resources\User\UserResource($user->load('driverProfile'));
     }
 
-    public function update(Request $request, User $user)
+    public function update(\App\Http\Requests\UserUpdateRequest $request, User $user)
     {
-        $validated = $request->validate([
-            'name' => 'string|max:255',
-            'email' => 'email|unique:users,email,' . $user->id,
-            'password' => 'nullable|string|min:6', // Optional update
-            'role' => 'in:admin,worker,driver,client',
-            'phone' => 'nullable|string|max:20',
-        ]);
+        $validated = $request->validated();
 
-        if (isset($validated['password'])) {
-            $user->password = $validated['password']; // Casts will hash it
+        if (array_key_exists('password', $validated) && is_null($validated['password'])) {
+            unset($validated['password']);
         }
 
-        $user->update(collect($validated)->except('password')->toArray());
+        $user->update($validated);
 
-        if (isset($validated['password'])) {
-            $user->save();
-        }
-
-        return response()->json([
-            'message' => 'Usuario actualizado con éxito',
-            'user' => $user
-        ]);
+        return new \App\Http\Resources\User\UserResource($user);
     }
 
     public function destroy(User $user)
     {
         $user->delete();
-        return response()->json(['message' => 'Usuario eliminado']);
+        return response()->noContent();
     }
+
     public function getDriversActive()
     {
         $totalDriversActive = User::getDriversActiveAttribute();

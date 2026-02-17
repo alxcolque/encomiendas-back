@@ -1,7 +1,10 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Shipment;
 
+use App\Http\Resources\Invoice\InvoiceResource;
+use App\Http\Resources\Office\OfficeResource;
+use App\Http\Resources\ShipmentEvent\ShipmentEventResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 

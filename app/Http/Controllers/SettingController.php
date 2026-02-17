@@ -9,7 +9,7 @@ class SettingController extends Controller
 {
     public function index()
     {
-        return Setting::all()->pluck('value', 'key');
+        return new \App\Http\Resources\Setting\SettingCollection(Setting::all());
     }
 
     public function store(Request $request)
@@ -27,6 +27,7 @@ class SettingController extends Controller
 
     public function show($key)
     {
-        return Setting::findOrFail($key);
+        $setting = Setting::findOrFail($key);
+        return new \App\Http\Resources\Setting\SettingResource($setting);
     }
 }

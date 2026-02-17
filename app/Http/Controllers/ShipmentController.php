@@ -9,7 +9,7 @@ class ShipmentController extends Controller
 {
     public function index()
     {
-        return \App\Http\Resources\ShipmentResource::collection(
+        return new \App\Http\Resources\Shipment\ShipmentCollection(
             Shipment::with(['originOffice', 'destinationOffice', 'events'])->paginate(20)
         );
     }
@@ -17,12 +17,12 @@ class ShipmentController extends Controller
     public function store(\App\Http\Requests\ShipmentRequest $request)
     {
         $shipment = Shipment::create($request->validated());
-        return new \App\Http\Resources\ShipmentResource($shipment);
+        return new \App\Http\Resources\Shipment\ShipmentResource($shipment);
     }
 
     public function show(Shipment $shipment)
     {
-        return new \App\Http\Resources\ShipmentResource(
+        return new \App\Http\Resources\Shipment\ShipmentResource(
             $shipment->load(['originOffice', 'destinationOffice', 'events', 'invoice'])
         );
     }
@@ -30,7 +30,7 @@ class ShipmentController extends Controller
     public function update(\App\Http\Requests\ShipmentRequest $request, Shipment $shipment)
     {
         $shipment->update($request->validated());
-        return new \App\Http\Resources\ShipmentResource($shipment);
+        return new \App\Http\Resources\Shipment\ShipmentResource($shipment);
     }
 
     public function destroy(Shipment $shipment)
@@ -45,6 +45,6 @@ class ShipmentController extends Controller
             ->with(['originOffice', 'destinationOffice', 'events'])
             ->firstOrFail();
 
-        return new \App\Http\Resources\ShipmentResource($shipment);
+        return new \App\Http\Resources\Shipment\ShipmentResource($shipment);
     }
 }

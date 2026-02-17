@@ -1,23 +1,21 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\ShipmentEvent;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class OfficeResource extends JsonResource
+class ShipmentEventResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
-            'name' => $this->name,
-            'city' => $this->city,
-            'address' => $this->address,
-            'phone' => $this->phone,
-            'manager' => $this->manager,
+            'shipment_id' => $this->shipment_id,
             'status' => $this->status,
-            'coordinates' => $this->coordinates,
+            'location' => $this->location,
+            'description' => $this->description,
+            'timestamp' => $this->timestamp,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
