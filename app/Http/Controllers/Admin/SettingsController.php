@@ -147,4 +147,28 @@ class SettingsController extends Controller
             'privacyPolicy' => $setting->privacy_policy,
         ]);
     }
+
+    public function uploadLogo(Request $request)
+    {
+        $request->validate([
+            'logo' => 'nullable|image|max:2048', // 2MB Max
+            'favicon' => 'nullable|image|max:1024', // 1MB Max
+            'type' => 'required|in:logo,favicon'
+        ]);
+
+        $setting = Setting::firstOrFail();
+        $type = $request->type;
+
+        if ($request->hasFile($type)) {
+            // Delete old file if exists
+            if ($setting->$type && \Illuminate\Support\Facades\Storage::disk('public')->exists($setting->$type)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($setting->$type);
+            }
+
+            $path = $request->file($type)->store('settings', 'public');
+            $setting->update([$type => $path]);
+        }
+
+        return new SettingResource($setting);
+    }
 }

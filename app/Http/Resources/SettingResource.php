@@ -21,6 +21,8 @@ class SettingResource extends JsonResource
             'supportEmail' => $this->support_email,
             'supportPhone' => $this->support_phone,
             'address' => $this->address,
+            'logo' => $this->logo ? asset('storage/' . $this->logo) : null,
+            'favicon' => $this->favicon ? asset('storage/' . $this->favicon) : null,
         ];
     }
 }

@@ -16,6 +16,8 @@ class Setting extends Model
         'support_email',
         'support_phone',
         'address',
+        'logo',
+        'favicon',
         'terms_and_conditions',
         'privacy_policy',
     ];

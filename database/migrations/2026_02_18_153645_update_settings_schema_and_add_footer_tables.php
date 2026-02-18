@@ -21,6 +21,8 @@ return new class extends Migration
             $table->string('support_email')->nullable();
             $table->string('support_phone')->nullable();
             $table->string('address')->nullable();
+            $table->string('logo')->nullable();
+            $table->string('favicon')->nullable();
             $table->longText('terms_and_conditions')->nullable();
             $table->longText('privacy_policy')->nullable();
             $table->timestamps();

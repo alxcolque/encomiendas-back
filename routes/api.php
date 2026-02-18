@@ -85,4 +85,5 @@ Route::middleware(['auth:sanctum', 'role:admin'])
         Route::put('/footer-links', [\App\Http\Controllers\Admin\SettingsController::class, 'updateFooterLinks']);
         Route::put('/payment-methods', [\App\Http\Controllers\Admin\SettingsController::class, 'updatePaymentMethods']);
         Route::put('/legal', [\App\Http\Controllers\Admin\SettingsController::class, 'updateLegal']);
+        Route::post('/logo', [\App\Http\Controllers\Admin\SettingsController::class, 'uploadLogo']);
     });

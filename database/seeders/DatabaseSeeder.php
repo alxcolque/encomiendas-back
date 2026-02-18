@@ -171,8 +171,6 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // 5. Settings
-        Setting::create(['key' => 'app_name', 'value' => 'Kolmox']);
-        Setting::create(['key' => 'currency', 'value' => 'BOB']);
-        Setting::create(['key' => 'price_per_kg', 'value' => '5.00']);
+        $this->call(SettingsSeeder::class);
     }
 }
