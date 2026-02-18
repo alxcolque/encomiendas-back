@@ -9,12 +9,14 @@ class Setting extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'key';
-    public $incrementing = false;
-    protected $keyType = 'string';
-
     protected $fillable = [
-        'key',
-        'value',
+        'site_name',
+        'site_description',
+        'keywords',
+        'support_email',
+        'support_phone',
+        'address',
+        'terms_and_conditions',
+        'privacy_policy',
     ];
 }

@@ -74,3 +74,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('faqs', FaqController::class)->except(['index']);
     Route::apiResource('payment-methods', PaymentMethodController::class)->except(['index']);
 });
+
+Route::middleware(['auth:sanctum', 'role:admin'])
+    ->prefix('admin/settings')
+    ->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\SettingsController::class, 'index']);
+        Route::put('/general', [\App\Http\Controllers\Admin\SettingsController::class, 'updateGeneral']);
+        Route::put('/socials', [\App\Http\Controllers\Admin\SettingsController::class, 'updateSocials']);
+        Route::put('/faqs', [\App\Http\Controllers\Admin\SettingsController::class, 'updateFaqs']);
+        Route::put('/footer-links', [\App\Http\Controllers\Admin\SettingsController::class, 'updateFooterLinks']);
+        Route::put('/payment-methods', [\App\Http\Controllers\Admin\SettingsController::class, 'updatePaymentMethods']);
+        Route::put('/legal', [\App\Http\Controllers\Admin\SettingsController::class, 'updateLegal']);
+    });
