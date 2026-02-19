@@ -160,13 +160,39 @@ class SettingsController extends Controller
         $type = $request->type;
 
         if ($request->hasFile($type)) {
-            // Delete old file if exists
-            if ($setting->$type && \Illuminate\Support\Facades\Storage::disk('public')->exists($setting->$type)) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($setting->$type);
+            $file = $request->file($type);
+
+            // Convert to Base64 for FileStorage
+            $base64 = 'data:' . $file->getMimeType() . ';base64,' . base64_encode(file_get_contents($file));
+
+            // Define folder path
+            $folderPath = 'kolmox/settings';
+
+            // Use FileStorage to upload/replace
+            // Note: Since we don't store the file key/ID in settings table for now (only URL), 
+            // we can't effectively use the delete feature of ImageKit through FileStorage::delete 
+            // if we don't have the ID. 
+            // However, FileStorage::replace calls delete then upload. 
+            // If we strictly follow User pattern, we'd need a key. 
+            // For now, we'll just upload and update the URL.
+            // If local, FileStorage returns URL. If ImageKit, it returns fileId,url.
+
+            $response = \App\Http\Controllers\Files\FileStorage::upload($base64, $folderPath);
+
+            $url = $response;
+            // Handle ImageKit response "fileId,url"
+            if (strpos($response, ',') !== false && env('DIR_PATH_FILE') === 'imagekit') {
+                $parts = explode(',', $response);
+                $url = $parts[1];
+                // construct to save ID? For now just URL as per schema.
             }
 
-            $path = $request->file($type)->store('settings', 'public');
-            $setting->update([$type => $path]);
+            // Check for error
+            if (strpos($url, 'Error') === 0) {
+                return response()->json(['message' => $url], 400);
+            }
+
+            $setting->update([$type => $url]);
         }
 
         return new SettingResource($setting);
