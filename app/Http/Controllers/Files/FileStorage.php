@@ -16,9 +16,9 @@ class FileStorage extends Controller
         return pathinfo($path, PATHINFO_FILENAME);
     }
 
-    public static function upload($fileb64, $folder_path)
+    public static function upload($fileb64, $folder_path, $format = 'webp')
     {
-        $imageName = time() . ".webp";
+        $imageName = time() . "." . $format;
 
         if (env("DIR_PATH_FILE") == "local") {
 
@@ -37,13 +37,20 @@ class FileStorage extends Controller
                 }
 
                 $image_base64 = base64_decode($image_parts[1]);
-
-                // convertir a WebP (Intervention Image v3)
-                $image = \Intervention\Image\Laravel\Facades\Image::read($image_base64)
-                    ->encodeByExtension('webp', 80); // calidad 0–100
-
                 $imageFullPath = rtrim($folderPath, '/') . "/" . $imageName;
-                $image->save($imageFullPath);
+
+                if (in_array($format, ['ico', 'svg'])) {
+                    // Save directly without processing
+                    file_put_contents($imageFullPath, $image_base64);
+                } else {
+                    // convertir (Intervention Image v3)
+                    $image = \Intervention\Image\Laravel\Facades\Image::read($image_base64);
+
+                    // Only encode if it's one of the supported formats for encoding, broadly. 
+                    // But meant mainly for webp/jpg/png conversions if needed.
+                    // If format is png, we save as png.
+                    $image->encodeByExtension($format, 80)->save($imageFullPath);
+                }
 
                 $result = rtrim(url('/'), '/') . '/' . trim($folder_path, '/') . '/' . $imageName;
                 return $result;

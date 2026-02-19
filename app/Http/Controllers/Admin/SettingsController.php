@@ -151,8 +151,8 @@ class SettingsController extends Controller
     public function uploadLogo(Request $request)
     {
         $request->validate([
-            'logo' => 'nullable|image|max:2048', // 2MB Max
-            'favicon' => 'nullable|image|max:1024', // 1MB Max
+            'logo' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:2048', // 2MB Max
+            'favicon' => 'nullable|file|mimes:ico,png|max:1024', // 1MB Max, allow ico and png
             'type' => 'required|in:logo,favicon'
         ]);
 
@@ -162,29 +162,49 @@ class SettingsController extends Controller
         if ($request->hasFile($type)) {
             $file = $request->file($type);
 
+            // Delete old file if exists (Local only effectively)
+            $oldUrl = $setting->$type;
+            if ($oldUrl) {
+                // We don't have file_id for ImageKit, so passing null. 
+                // Only works for local storage as per plan.
+                \App\Http\Controllers\Files\FileStorage::delete($oldUrl, null);
+            }
+
+            // Determine format
+            $extension = $file->getClientOriginalExtension();
+            $format = 'webp'; // Default
+
+            if ($type === 'favicon') {
+                // For favicon, prefer ico or png, do not convert to webp if it is ico
+                if (in_array(strtolower($extension), ['ico', 'svg'])) {
+                    $format = strtolower($extension);
+                } else {
+                    // If it's a png favicon, we can keep it as png or convert. 
+                    // User asked "subir logo en formato png y ico sin cambiar de extension".
+                    // So we keep extension if valid image.
+                    $format = strtolower($extension);
+                }
+            } else { // logo
+                // User asked "subir logo en formato png... sin cambiar de extension".
+                // So we use original extension if it is an image.
+                $format = strtolower($extension);
+                if ($format == 'jpeg') $format = 'jpg';
+            }
+
             // Convert to Base64 for FileStorage
             $base64 = 'data:' . $file->getMimeType() . ';base64,' . base64_encode(file_get_contents($file));
 
             // Define folder path
             $folderPath = 'kolmox/settings';
 
-            // Use FileStorage to upload/replace
-            // Note: Since we don't store the file key/ID in settings table for now (only URL), 
-            // we can't effectively use the delete feature of ImageKit through FileStorage::delete 
-            // if we don't have the ID. 
-            // However, FileStorage::replace calls delete then upload. 
-            // If we strictly follow User pattern, we'd need a key. 
-            // For now, we'll just upload and update the URL.
-            // If local, FileStorage returns URL. If ImageKit, it returns fileId,url.
-
-            $response = \App\Http\Controllers\Files\FileStorage::upload($base64, $folderPath);
+            // Upload with specific format
+            $response = \App\Http\Controllers\Files\FileStorage::upload($base64, $folderPath, $format);
 
             $url = $response;
             // Handle ImageKit response "fileId,url"
             if (strpos($response, ',') !== false && env('DIR_PATH_FILE') === 'imagekit') {
                 $parts = explode(',', $response);
                 $url = $parts[1];
-                // construct to save ID? For now just URL as per schema.
             }
 
             // Check for error
