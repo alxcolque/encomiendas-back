@@ -13,11 +13,16 @@ class Office extends Model
         'name',
         'city',
         'address',
-        'phone',
-        'manager',
+        // 'phone', // Removed
+        // 'manager', // Removed
         'status',
         'coordinates',
     ];
+
+    public function managers()
+    {
+        return $this->belongsToMany(User::class, 'office_user');
+    }
 
     public function shipmentsSent()
     {

@@ -21,7 +21,6 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
-        'phone',
         'pin',
         'role',
         'status',
@@ -56,6 +55,11 @@ class User extends Authenticatable
     }
 
     // Relationships
+    public function offices()
+    {
+        return $this->belongsToMany(Office::class, 'office_user');
+    }
+
     public function driverProfile()
     {
         return $this->hasOne(Driver::class, 'user_id');

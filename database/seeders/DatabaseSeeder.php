@@ -23,7 +23,6 @@ class DatabaseSeeder extends Seeder
             'name' => 'Oficina Oruro Principal',
             'city' => 'Oruro',
             'address' => 'Av. 6 de Agosto y Aroma',
-            'phone' => '52-55555',
             'status' => 'active',
             'coordinates' => '-17.9647,-67.1060'
         ]);
@@ -32,7 +31,6 @@ class DatabaseSeeder extends Seeder
             'name' => 'Oficina La Paz Centro',
             'city' => 'La Paz',
             'address' => 'Zona San Pedro',
-            'phone' => '2-22222',
             'status' => 'active',
             'coordinates' => '-16.5000,-68.1500'
         ]);
@@ -41,7 +39,6 @@ class DatabaseSeeder extends Seeder
             'name' => 'Oficina Cochabamba',
             'city' => 'Cochabamba',
             'address' => 'Av. Ayacucho',
-            'phone' => '4-44444',
             'status' => 'active',
             'coordinates' => '-17.3935,-66.1570'
         ]);

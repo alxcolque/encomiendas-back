@@ -13,8 +13,6 @@ return new class extends Migration
             $table->string('name');
             $table->string('city', 100);
             $table->string('address');
-            $table->string('phone', 20)->nullable();
-            $table->string('manager')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->string('coordinates', 100)->nullable();
             $table->timestamps();
