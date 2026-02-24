@@ -1,11 +1,13 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\CityController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\OfficeController;
 use App\Http\Controllers\PaymentMethodController;
+use App\Http\Controllers\RouteValueController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\SocialLinkController;
@@ -37,6 +39,7 @@ Route::get('/faqs', [FaqController::class, 'index']);
 Route::get('/social-links', [SocialLinkController::class, 'index']);
 Route::get('/payment-methods', [PaymentMethodController::class, 'index']);
 Route::get('/settings/{key}', [SettingController::class, 'show']); // Get specific setting (e.g., general)
+Route::get('/cities', [CityController::class, 'index']); // Public list of cities (for dropdowns)
 
 // Public Shipment Tracking
 Route::get('/shipments/track/{code}', [ShipmentController::class, 'track']);
@@ -64,6 +67,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Invoices
     Route::apiResource('invoices', InvoiceController::class);
+
+    // Cities (management)
+    Route::apiResource('cities', CityController::class)->except(['index']); // Index is public
+
+    // Route Values
+    Route::apiResource('route-values', RouteValueController::class);
 
     // Settings (Admin only usually, but for now open to auth)
     Route::get('/settings', [SettingController::class, 'index']);
