@@ -13,9 +13,11 @@ class CityRequest extends FormRequest
 
     public function rules(): array
     {
+        $isUpdate = $this->isMethod('put') || $this->isMethod('patch');
+
         return [
-            'name'     => 'required|string|max:150',
-            'location' => 'nullable|string|max:100',
+            'name'     => ($isUpdate ? 'sometimes|' : '') . 'required|string|max:150',
+            'location' => 'nullable|string|max:250',
         ];
     }
 }

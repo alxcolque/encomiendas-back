@@ -11,7 +11,7 @@ class RouteValueResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'         => $this->id,
+            'id'         => (string) $this->id,
             'city_a'     => new CityResource($this->whenLoaded('cityA')),
             'city_b'     => new CityResource($this->whenLoaded('cityB')),
             'value'      => $this->value,
