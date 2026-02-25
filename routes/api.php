@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\CityController;
+use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\InvoiceController;
@@ -55,6 +56,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Users
     Route::apiResource('users', UserController::class);
+
+    // Clients
+    Route::get('clients/search', [ClientController::class, 'search']);
+    Route::patch('clients/{client}/status/{status}', [ClientController::class, 'changeStatus']);
+    Route::apiResource('clients', ClientController::class);
 
     // Offices (Admin management)
     Route::apiResource('offices', OfficeController::class)->except(['index']); // Index is public

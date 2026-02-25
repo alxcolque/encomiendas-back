@@ -13,4 +13,10 @@ class Client extends Model
         'status',
         'observations',
     ];
+
+    // Relación inversa: un cliente puede tener muchos envíos
+    public function shipments()
+    {
+        return $this->hasMany(Shipment::class, 'sender_id');
+    }
 }
