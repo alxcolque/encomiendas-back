@@ -11,17 +11,15 @@ class Office extends Model
 
     protected $fillable = [
         'name',
-        'city',
+        'city_id',
         'address',
-        // 'phone', // Removed
-        // 'manager', // Removed
         'status',
         'coordinates',
     ];
 
-    public function managers()
+    public function city()
     {
-        return $this->belongsToMany(User::class, 'office_user');
+        return $this->belongsTo(City::class);
     }
 
     public function shipmentsSent()

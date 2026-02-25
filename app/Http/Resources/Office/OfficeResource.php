@@ -7,6 +7,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class OfficeResource extends JsonResource
 {
+
     public function toArray(Request $request): array
     {
         return [
@@ -14,11 +15,6 @@ class OfficeResource extends JsonResource
             'name' => $this->name,
             'city' => $this->city,
             'address' => $this->address,
-            // 'phone' => $this->phone, // Removed
-            'hours' => 'Lun - Vie: 08:30 - 18:30 | Sáb: 09:00 - 13:00', // Static for now
-            'image' => 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800', // Placeholder
-            // 'manager' => $this->manager, // Removed
-            'managers' => $this->managers,
             'status' => $this->status,
             'coordinates' => $this->coordinates,
             'created_at' => $this->created_at,

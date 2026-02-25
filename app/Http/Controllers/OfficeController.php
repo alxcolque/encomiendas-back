@@ -9,7 +9,7 @@ class OfficeController extends Controller
 {
     public function index()
     {
-        return new \App\Http\Resources\Office\OfficeCollection(Office::with('managers')->get());
+        return new \App\Http\Resources\Office\OfficeCollection(Office::with('city')->get());
     }
 
     public function store(\App\Http\Requests\OfficeRequest $request)

@@ -15,10 +15,8 @@ class OfficeRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255',
-            'city' => 'required|string|max:100',
+            'city_id' => 'required',
             'address' => 'required|string|max:255',
-            // 'phone' => 'nullable|string|max:20', // Removed
-            // 'manager' => 'nullable|string|max:255', // Removed
             'users' => 'nullable|array',
             'users.*' => 'exists:users,id',
             'status' => 'in:active,inactive',

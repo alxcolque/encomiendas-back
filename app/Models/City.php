@@ -14,6 +14,11 @@ class City extends Model
         'location',
     ];
 
+    public function offices()
+    {
+        return $this->hasMany(Office::class);
+    }
+
     public function routesAsA()
     {
         return $this->hasMany(RouteValue::class, 'city_a');
