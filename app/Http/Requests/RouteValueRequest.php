@@ -13,9 +13,11 @@ class RouteValueRequest extends FormRequest
 
     public function rules(): array
     {
+        $isUpdate = $this->isMethod('put') || $this->isMethod('patch');
+
         return [
-            'city_a' => 'required|exists:cities,id',
-            'city_b' => 'required|exists:cities,id|different:city_a',
+            'city_a' => ($isUpdate ? 'sometimes|' : '') . 'required|exists:cities,id',
+            'city_b' => ($isUpdate ? 'sometimes|' : '') . 'required|exists:cities,id|different:city_a',
             'value'  => 'required|numeric|min:0',
         ];
     }
