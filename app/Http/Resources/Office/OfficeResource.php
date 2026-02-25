@@ -4,6 +4,7 @@ namespace App\Http\Resources\Office;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\City\CityResource;
 
 class OfficeResource extends JsonResource
 {
@@ -11,14 +12,20 @@ class OfficeResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'city' => $this->city,
-            'address' => $this->address,
-            'status' => $this->status,
+            'id'          => $this->id,
+            'name'        => $this->name,
+            'city_id'     => $this->city_id,
+            'city'        => new CityResource($this->whenLoaded('city')),
+            'address'     => $this->address,
+            'status'      => $this->status,
             'coordinates' => $this->coordinates,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'managers'    => $this->whenLoaded(
+                'managers',
+                fn() =>
+                $this->managers->map(fn($m) => ['id' => (string) $m->id, 'name' => $m->name])
+            ),
+            'created_at'  => $this->created_at,
+            'updated_at'  => $this->updated_at,
         ];
     }
 }

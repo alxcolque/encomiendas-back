@@ -22,6 +22,11 @@ class Office extends Model
         return $this->belongsTo(City::class);
     }
 
+    public function managers()
+    {
+        return $this->belongsToMany(User::class, 'office_user');
+    }
+
     public function shipmentsSent()
     {
         return $this->hasMany(Shipment::class, 'origin_office_id');
