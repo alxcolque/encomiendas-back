@@ -93,16 +93,5 @@ class SettingsSeeder extends Seeder
                 $category->links()->create($link);
             }
         }
-
-        // 5. Payment Methods
-        $payments = [
-            ['label' => 'Efectivo', 'icon' => 'banknote', 'active' => true],
-            ['label' => 'Tarjeta de Crédito/Débito', 'icon' => 'credit-card', 'active' => true],
-            ['label' => 'QR Simple', 'icon' => 'wallet', 'active' => true],
-        ];
-
-        foreach ($payments as $payment) {
-            PaymentMethod::create($payment);
-        }
     }
 }

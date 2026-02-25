@@ -31,7 +31,7 @@ class UserController extends Controller
                     "phone" => $user->phone,
                     "avatar" => $user->avatar,
                     "role" => $user->role,
-                    // "status" => $user->status, // User model doesn't have status column in migration, assume active? Driver has profile status.
+                    "status" => $user->status,
                     "created_at" => $user->created_at,
                     "updated_at" => $user->updated_at,
                 ];

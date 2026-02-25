@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\City;
 use App\Models\User;
 use App\Models\Office;
 use App\Models\Shipment;
@@ -18,10 +19,25 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        //Todo: City
+        $lpz = City::create([
+            'name' => 'La Paz',
+            'is_active' => true,
+        ]);
+
+        $cba = City::create([
+            'name' => 'Cochabamba',
+            'is_active' => true,
+        ]);
+
+        $oruro = City::create([
+            'name' => 'Oruro',
+            'is_active' => true,
+        ]);
         // 1. Offices
         $oruro = Office::create([
             'name' => 'Oficina Oruro Principal',
-            'city' => 'Oruro',
+            'city_id' => $oruro->id,
             'address' => 'Av. 6 de Agosto y Aroma',
             'status' => 'active',
             'coordinates' => '-17.9647,-67.1060'
@@ -29,7 +45,7 @@ class DatabaseSeeder extends Seeder
 
         $lpz = Office::create([
             'name' => 'Oficina La Paz Centro',
-            'city' => 'La Paz',
+            'city_id' => $lpz->id,
             'address' => 'Zona San Pedro',
             'status' => 'active',
             'coordinates' => '-16.5000,-68.1500'
@@ -37,7 +53,7 @@ class DatabaseSeeder extends Seeder
 
         $cba = Office::create([
             'name' => 'Oficina Cochabamba',
-            'city' => 'Cochabamba',
+            'city_id' => $cba->id,
             'address' => 'Av. Ayacucho',
             'status' => 'active',
             'coordinates' => '-17.3935,-66.1570'
@@ -55,7 +71,7 @@ class DatabaseSeeder extends Seeder
         $worker = User::create([
             'name' => 'Maria Gomez (Worker)',
             'email' => 'worker@kolmox.com',
-            'phone' => '70000001',
+            'phone' => '67239563',
             'pin' => '1234',
             'role' => 'worker',
         ]);
@@ -63,7 +79,7 @@ class DatabaseSeeder extends Seeder
         $driverUser = User::create([
             'name' => 'Carlos Mamani (Driver)',
             'email' => 'driver@kolmox.com',
-            'phone' => '67239563',
+            'phone' => '70000000',
             'pin' => '1234',
             'role' => 'driver',
         ]);
@@ -78,95 +94,6 @@ class DatabaseSeeder extends Seeder
             'rating' => 5.00,
             'total_deliveries' => 0
         ]);
-
-        $client = User::create([
-            'name' => 'Ana Lopez (Client)',
-            'email' => 'client@kolmox.com',
-            'phone' => '71111111',
-            'pin' => '0000',
-            'role' => 'client',
-        ]);
-
-        // 3. Shipments
-        // Shipment 1: Created (Oruro -> La Paz)
-        Shipment::create([
-            'tracking_code' => 'TRK-001-OR-LP',
-            'origin_office_id' => $oruro->id,
-            'destination_office_id' => $lpz->id,
-            'sender_name' => 'Juan Sender',
-            'sender_phone' => '77711111',
-            'receiver_name' => 'Pedro Receiver',
-            'receiver_phone' => '77722222',
-            'current_status' => 'created',
-            'price' => 50.00,
-            'estimated_delivery' => now()->addDays(2),
-        ]);
-
-        // Shipment 2: In Transit (Oruro -> Cba)
-        Shipment::create([
-            'tracking_code' => 'TRK-002-OR-CBA',
-            'origin_office_id' => $oruro->id,
-            'destination_office_id' => $cba->id,
-            'sender_name' => 'Maria Sender',
-            'sender_phone' => '77733333',
-            'receiver_name' => 'Luis Receiver',
-            'receiver_phone' => '77744444',
-            'current_status' => 'in_transit',
-            'price' => 80.50,
-            'estimated_delivery' => now()->addDay(1),
-        ]);
-
-        // Shipment 3: Delivered (La Paz -> Oruro)
-        $deliveredShipment = Shipment::create([
-            'tracking_code' => 'TRK-003-LP-OR',
-            'origin_office_id' => $lpz->id,
-            'destination_office_id' => $oruro->id,
-            'sender_name' => 'Carlos Sender',
-            'sender_phone' => '77755555',
-            'receiver_name' => 'Sofia Receiver',
-            'receiver_phone' => '77766666',
-            'current_status' => 'delivered',
-            'price' => 45.00,
-            'estimated_delivery' => now()->subDay(1),
-        ]);
-
-        // 4. Invoices
-        Invoice::create([
-            'shipment_id' => $deliveredShipment->id,
-            'nit_ci' => '1234567',
-            'business_name' => 'Carlos Sender',
-            'amount' => 45.00,
-            'invoice_number' => 'INV-001',
-            'payment_method' => 'cash',
-            'status' => 'paid',
-            'issued_at' => now(),
-        ]);
-
-        // 5. Shipment Events
-        \App\Models\ShipmentEvent::create([
-            'shipment_id' => $deliveredShipment->id,
-            'status' => 'created',
-            'description' => 'Shipment created at Oruro office',
-            'location' => 'Oruro',
-            'timestamp' => now()->subDays(2),
-        ]);
-
-        \App\Models\ShipmentEvent::create([
-            'shipment_id' => $deliveredShipment->id,
-            'status' => 'in_transit',
-            'description' => 'Departed from Oruro',
-            'location' => 'Oruro',
-            'timestamp' => now()->subDays(1),
-        ]);
-
-        \App\Models\ShipmentEvent::create([
-            'shipment_id' => $deliveredShipment->id,
-            'status' => 'delivered',
-            'description' => 'Delivered to receiver',
-            'location' => 'Oruro',
-            'timestamp' => now(),
-        ]);
-
         // 5. Settings
         $this->call(SettingsSeeder::class);
     }

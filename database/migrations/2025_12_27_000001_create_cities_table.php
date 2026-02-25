@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('cities', function (Blueprint $table) {
             $table->id();
             $table->string('name', 150);
+            $table->boolean('is_active')->default(true);
             $table->string('location', 250)->nullable();
             $table->timestamps();
         });

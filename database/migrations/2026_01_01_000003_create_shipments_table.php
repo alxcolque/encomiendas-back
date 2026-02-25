@@ -26,10 +26,10 @@ return new class extends Migration
             $table->decimal('price', 10, 2)->default(0.00);
             $table->timestamps();
 
-            $table->foreign('origin_office_id')->references('id')->on('offices')->onDelete('set null');
-            $table->foreign('destination_office_id')->references('id')->on('offices')->onDelete('set null');
-            $table->foreign('sender_id')->references('id')->on('clients')->onDelete('set null');
-            $table->foreign('receiver_id')->references('id')->on('clients')->onDelete('set null');
+            $table->foreign('origin_office_id')->references('id')->on('offices')->onDelete('cascade');
+            $table->foreign('destination_office_id')->references('id')->on('offices')->onDelete('cascade');
+            $table->foreign('sender_id')->references('id')->on('clients')->onDelete('cascade');
+            $table->foreign('receiver_id')->references('id')->on('clients')->onDelete('cascade');
         });
     }
 

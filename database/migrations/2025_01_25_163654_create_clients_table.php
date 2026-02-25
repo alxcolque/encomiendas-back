@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('ci_nit')->unique();
             $table->string('phone', 20)->nullable();
             $table->string('status')->default('normal'); // normal, blocked, deleted
-            /* Observaciones */
             $table->text('observations')->nullable();
             $table->timestamps();
         });
