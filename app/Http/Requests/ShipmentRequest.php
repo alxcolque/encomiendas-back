@@ -16,12 +16,15 @@ class ShipmentRequest extends FormRequest
         $shipmentId = $this->route('shipment') ? $this->route('shipment')->id : null;
 
         $rules = [
-            'origin_office_id' => 'nullable|exists:offices,id',
-            'destination_office_id' => 'nullable|exists:offices,id',
-            'sender_name' => 'required|string|max:255',
-            'sender_phone' => 'nullable|string|max:20',
-            'receiver_name' => 'required|string|max:255',
-            'receiver_phone' => 'nullable|string|max:20',
+            'origin_office_id' => 'required|exists:offices,id',
+            'destination_office_id' => 'required|exists:offices,id',
+            'sender_id' => 'required|exists:clients,id',
+            'receiver_id' => 'required|exists:clients,id',
+            'tracking_pay' => 'nullable|integer|in:1,2,3',
+            'is_pack' => 'nullable|boolean',
+            'type_service' => 'nullable|in:normal,standard,express',
+            'track_type' => 'nullable|integer|in:1,2',
+            'observation' => 'nullable|string',
             'current_status' => 'in:created,in_transit,at_office,out_for_delivery,delivered,cancelled',
             'estimated_delivery' => 'nullable|date',
             'price' => 'numeric|min:0',

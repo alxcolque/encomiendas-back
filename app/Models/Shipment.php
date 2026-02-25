@@ -13,10 +13,13 @@ class Shipment extends Model
         'tracking_code',
         'origin_office_id',
         'destination_office_id',
-        'sender_name',
-        'sender_phone',
-        'receiver_name',
-        'receiver_phone',
+        'sender_id',
+        'receiver_id',
+        'tracking_pay',
+        'is_pack',
+        'type_service',
+        'track_type',
+        'observation',
         'current_status',
         'estimated_delivery',
         'price',
@@ -34,6 +37,16 @@ class Shipment extends Model
     public function destinationOffice()
     {
         return $this->belongsTo(Office::class, 'destination_office_id');
+    }
+
+    public function sender()
+    {
+        return $this->belongsTo(Client::class, 'sender_id');
+    }
+
+    public function receiver()
+    {
+        return $this->belongsTo(Client::class, 'receiver_id');
     }
 
     public function events()
