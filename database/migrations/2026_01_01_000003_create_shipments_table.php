@@ -11,12 +11,16 @@ return new class extends Migration
         Schema::create('shipments', function (Blueprint $table) {
             $table->id();
             $table->string('tracking_code', 50)->unique();
-            $table->unsignedBigInteger('origin_office_id')->nullable();
-            $table->unsignedBigInteger('destination_office_id')->nullable();
-            $table->string('sender_name');
-            $table->string('sender_phone', 20)->nullable();
-            $table->string('receiver_name');
-            $table->string('receiver_phone', 20)->nullable();
+            $table->unsignedBigInteger('origin_office_id');
+            $table->unsignedBigInteger('destination_office_id');
+            $table->unsignedBigInteger('sender_id');
+            $table->unsignedBigInteger('receiver_id');
+            $table->tinyInteger('tracking_pay')->default(1); //1=sender, 2=receiver, 3=both
+            $table->text('observation')->nullable();
+            $table->boolean('is_pack')->default(true); //false=sobre, true=paquete
+            $table->boolean('is_fragile')->default(false); //false=no, true=yes
+            $table->enum('type_service', ['normal', 'standard', 'express'])->default('normal');
+            $table->tinyInteger('track_type')->default(1); //1=terrestre, 2=aereo
             $table->enum('current_status', ['created', 'in_transit', 'at_office', 'out_for_delivery', 'delivered', 'cancelled'])->default('created');
             $table->dateTime('estimated_delivery')->nullable();
             $table->decimal('price', 10, 2)->default(0.00);
@@ -24,6 +28,8 @@ return new class extends Migration
 
             $table->foreign('origin_office_id')->references('id')->on('offices')->onDelete('set null');
             $table->foreign('destination_office_id')->references('id')->on('offices')->onDelete('set null');
+            $table->foreign('sender_id')->references('id')->on('clients')->onDelete('set null');
+            $table->foreign('receiver_id')->references('id')->on('clients')->onDelete('set null');
         });
     }
 

@@ -17,8 +17,10 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('phone', 20)->nullable();
             $table->string('pin'); // 4 digits encrypted
-            $table->enum('role', ['admin', 'worker', 'driver', 'client'])->default('client');
+            $table->enum('role', ['admin', 'worker', 'driver'])->default('client');
             $table->string('avatar')->nullable();
+            $table->string('avatar_key')->nullable();
+            $table->string('status')->default('active');
             $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
