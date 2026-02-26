@@ -16,12 +16,24 @@ class InvoiceRequest extends FormRequest
         $invoiceId = $this->route('invoice') ? $this->route('invoice')->id : null;
 
         $rules = [
+            'type' => 'required|string|max:50',
             'shipment_id' => 'required|exists:shipments,id',
-            'nit_ci' => 'required|string|max:20',
             'business_name' => 'required|string|max:255',
-            'amount' => 'required|numeric|min:0',
-            'payment_method' => 'nullable|string|max:50',
-            'status' => 'in:paid,pending,cancelled',
+            'nit_ci_emisor' => 'required|string|max:20',
+            'receipt_name' => 'required|string|max:255',
+            'doc_num' => 'required|string|max:20',
+            'complement' => 'nullable|string|max:5',
+            'cuf' => 'nullable|string|max:255',
+            'cufd' => 'nullable|string|max:255',
+            'cod_suc' => 'nullable|integer',
+            'cod_sale' => 'nullable|integer',
+            'emit_date' => 'nullable|date',
+            'details' => 'required|array',
+            'payment_method' => 'nullable|integer',
+            'total' => 'required|numeric|min:0',
+            'total_iva' => 'nullable|numeric|min:0',
+            'currency' => 'nullable|string|max:50',
+            'status' => 'nullable|string|max:50',
         ];
 
         if ($this->isMethod('post')) {

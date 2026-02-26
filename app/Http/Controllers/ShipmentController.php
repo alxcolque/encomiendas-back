@@ -43,7 +43,34 @@ class ShipmentController extends Controller
 
             $shipment = Shipment::create($data);
 
-            return new \App\Http\Resources\Shipment\ShipmentResource($shipment);
+            // Handle Invoice
+            if ($request->boolean('with_invoice')) {
+                \App\Models\Invoice::create([
+                    'type'           => 'con iva',
+                    'shipment_id'    => $shipment->id,
+                    'business_name'  => 'KOLMOX EXPRESS',
+                    'nit_ci_emisor'  => '456489012',
+                    'receipt_name'   => $request->invoice_name ?? $request->sender_name,
+                    'doc_num'        => $request->invoice_nit ?? $request->sender_ci,
+                    'details'        => [
+                        [
+                            'description' => 'SERVICIO DE TRANSPORTE DE ENCOMIENDA',
+                            'qty'         => 1,
+                            'unit'        => 58,
+                            'unit_price'  => $shipment->price,
+                            'discount'    => 0,
+                            'sub_total'   => $shipment->price,
+                        ]
+                    ],
+                    'payment_method' => 1, // 1 para efectivo
+                    'total'          => $shipment->price,
+                    'total_iva'      => $shipment->price,
+                    'currency'       => 'BOB',
+                    'status'         => 'paid',
+                ]);
+            }
+
+            return new \App\Http\Resources\Shipment\ShipmentResource($shipment->load('invoice'));
         });
     }
 

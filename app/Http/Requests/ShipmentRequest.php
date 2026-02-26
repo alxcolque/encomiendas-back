@@ -36,6 +36,11 @@ class ShipmentRequest extends FormRequest
             'current_status' => 'in:created,in_transit,at_office,out_for_delivery,delivered,cancelled',
             'estimated_delivery' => 'nullable|date',
             'price' => 'numeric|min:0',
+
+            // Optional Invoice Data
+            'with_invoice' => 'nullable|boolean',
+            'invoice_nit' => 'required_if:with_invoice,true|string|max:20',
+            'invoice_name' => 'required_if:with_invoice,true|string|max:255',
         ];
 
         if ($this->isMethod('post')) {
