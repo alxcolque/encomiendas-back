@@ -9,6 +9,15 @@ class Shipment extends Model
 {
     use HasFactory;
 
+    protected static function booted()
+    {
+        static::creating(function ($shipment) {
+            if (empty($shipment->tracking_code)) {
+                $shipment->tracking_code = 'SH-' . strtoupper(bin2hex(random_bytes(4)));
+            }
+        });
+    }
+
     protected $fillable = [
         'tracking_code',
         'origin_office_id',
@@ -17,6 +26,7 @@ class Shipment extends Model
         'receiver_id',
         'tracking_pay',
         'is_pack',
+        'is_fragile',
         'type_service',
         'track_type',
         'observation',

@@ -18,8 +18,16 @@ class ShipmentRequest extends FormRequest
         $rules = [
             'origin_office_id' => 'required|exists:offices,id',
             'destination_office_id' => 'required|exists:offices,id',
-            'sender_id' => 'required|exists:clients,id',
-            'receiver_id' => 'required|exists:clients,id',
+            'sender_id' => 'nullable|exists:clients,id',
+            'receiver_id' => 'nullable|exists:clients,id',
+            // New client data if IDs are not provided
+            'sender_name' => 'required_without:sender_id|string',
+            'sender_ci' => 'required_without:sender_id|string',
+            'sender_phone' => 'required_without:sender_id|string',
+            'receiver_name' => 'required_without:receiver_id|string',
+            'receiver_ci' => 'required_without:receiver_id|string',
+            'receiver_phone' => 'required_without:receiver_id|string',
+
             'tracking_pay' => 'nullable|integer|in:1,2,3',
             'is_pack' => 'nullable|boolean',
             'type_service' => 'nullable|in:normal,standard,express',
@@ -31,9 +39,9 @@ class ShipmentRequest extends FormRequest
         ];
 
         if ($this->isMethod('post')) {
-            $rules['tracking_code'] = 'required|string|unique:shipments,tracking_code|max:50';
+            $rules['tracking_code'] = 'nullable|string|unique:shipments,tracking_code|max:50';
         } else {
-            $rules['tracking_code'] = 'sometimes|string|unique:shipments,tracking_code,' . $shipmentId . '|max:50';
+            $rules['tracking_code'] = 'sometimes|nullable|string|unique:shipments,tracking_code,' . $shipmentId . '|max:50';
         }
 
         return $rules;

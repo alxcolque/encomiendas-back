@@ -16,8 +16,35 @@ class ShipmentController extends Controller
 
     public function store(\App\Http\Requests\ShipmentRequest $request)
     {
-        $shipment = Shipment::create($request->validated());
-        return new \App\Http\Resources\Shipment\ShipmentResource($shipment);
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($request) {
+            $data = $request->validated();
+
+            // Handle Sender
+            if (!$request->filled('sender_id')) {
+                $sender = \App\Models\Client::create([
+                    'name'   => $request->sender_name,
+                    'ci_nit' => $request->sender_ci,
+                    'phone'  => $request->sender_phone,
+                    'status' => 'normal',
+                ]);
+                $data['sender_id'] = $sender->id;
+            }
+
+            // Handle Receiver
+            if (!$request->filled('receiver_id')) {
+                $receiver = \App\Models\Client::create([
+                    'name'   => $request->receiver_name,
+                    'ci_nit' => $request->receiver_ci,
+                    'phone'  => $request->receiver_phone,
+                    'status' => 'normal',
+                ]);
+                $data['receiver_id'] = $receiver->id;
+            }
+
+            $shipment = Shipment::create($data);
+
+            return new \App\Http\Resources\Shipment\ShipmentResource($shipment);
+        });
     }
 
     public function show(Shipment $shipment)
