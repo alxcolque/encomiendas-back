@@ -7,16 +7,13 @@ use App\Http\Requests\UpdateFaqRequest;
 use App\Http\Requests\UpdateFooterLinksRequest;
 use App\Http\Requests\UpdateGeneralSettingsRequest;
 use App\Http\Requests\UpdateLegalRequest;
-use App\Http\Requests\UpdatePaymentMethodsRequest;
 use App\Http\Requests\UpdateSocialLinksRequest;
 use App\Http\Resources\FaqResource;
 use App\Http\Resources\FooterLinkResource;
-use App\Http\Resources\PaymentMethodResource;
 use App\Http\Resources\SettingResource;
 use App\Http\Resources\SocialLinkResource;
 use App\Models\Faq;
 use App\Models\FooterLinkCategory;
-use App\Models\PaymentMethod;
 use App\Models\Setting;
 use App\Models\SocialLink;
 use Illuminate\Http\Request;
@@ -33,7 +30,6 @@ class SettingsController extends Controller
         $footerCategories = FooterLinkCategory::with(['links' => function ($q) {
             $q->orderBy('order');
         }])->get();
-        $paymentMethods = PaymentMethod::all();
 
         $footerLinks = [];
         foreach ($footerCategories as $category) {
@@ -45,7 +41,6 @@ class SettingsController extends Controller
             'socials' => SocialLinkResource::collection($socials),
             'faqs' => FaqResource::collection($faqs),
             'footerLinks' => $footerLinks,
-            'paymentMethods' => PaymentMethodResource::collection($paymentMethods),
             'termsAndConditions' => $setting->terms_and_conditions,
             'privacyPolicy' => $setting->privacy_policy,
         ]);
@@ -123,18 +118,6 @@ class SettingsController extends Controller
         }
 
         return response()->json($footerLinks);
-    }
-
-    public function updatePaymentMethods(UpdatePaymentMethodsRequest $request)
-    {
-        DB::transaction(function () use ($request) {
-            PaymentMethod::truncate();
-            foreach ($request->paymentMethods as $methodData) {
-                PaymentMethod::create($methodData);
-            }
-        });
-
-        return PaymentMethodResource::collection(PaymentMethod::all());
     }
 
     public function updateLegal(UpdateLegalRequest $request)

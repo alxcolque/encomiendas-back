@@ -7,7 +7,6 @@ use App\Http\Controllers\DriverController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\OfficeController;
-use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\RouteValueController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\ShipmentController;
@@ -38,7 +37,6 @@ Route::post('/auth/refresh', [AuthController::class, 'refresh']);
 Route::get('/offices', [OfficeController::class, 'index']); // Public list of offices
 Route::get('/faqs', [FaqController::class, 'index']);
 Route::get('/social-links', [SocialLinkController::class, 'index']);
-Route::get('/payment-methods', [PaymentMethodController::class, 'index']);
 Route::get('/settings/{key}', [SettingController::class, 'show']); // Get specific setting (e.g., general)
 Route::get('/cities', [CityController::class, 'index']); // Public list of cities (for dropdowns)
 
@@ -88,7 +86,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // Social Links & FAQs (Admin management)
     Route::apiResource('social-links', SocialLinkController::class)->except(['index']);
     Route::apiResource('faqs', FaqController::class)->except(['index']);
-    Route::apiResource('payment-methods', PaymentMethodController::class)->except(['index']);
 });
 
 Route::middleware(['auth:sanctum', 'role:admin'])
@@ -99,7 +96,6 @@ Route::middleware(['auth:sanctum', 'role:admin'])
         Route::put('/socials', [\App\Http\Controllers\Admin\SettingsController::class, 'updateSocials']);
         Route::put('/faqs', [\App\Http\Controllers\Admin\SettingsController::class, 'updateFaqs']);
         Route::put('/footer-links', [\App\Http\Controllers\Admin\SettingsController::class, 'updateFooterLinks']);
-        Route::put('/payment-methods', [\App\Http\Controllers\Admin\SettingsController::class, 'updatePaymentMethods']);
         Route::put('/legal', [\App\Http\Controllers\Admin\SettingsController::class, 'updateLegal']);
         Route::post('/logo', [\App\Http\Controllers\Admin\SettingsController::class, 'uploadLogo']);
     });

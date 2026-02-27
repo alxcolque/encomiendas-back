@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\Faq;
 use App\Models\FooterLink;
 use App\Models\FooterLinkCategory;
-use App\Models\PaymentMethod;
 use App\Models\Setting;
 use App\Models\SocialLink;
 use Illuminate\Database\Seeder;
