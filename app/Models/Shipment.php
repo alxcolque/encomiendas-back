@@ -13,7 +13,7 @@ class Shipment extends Model
     {
         static::creating(function ($shipment) {
             if (empty($shipment->tracking_code)) {
-                $shipment->tracking_code = 'SH-' . strtoupper(bin2hex(random_bytes(4)));
+                $shipment->tracking_code = 'KOL-' . strtoupper(bin2hex(random_bytes(4)));
             }
         });
     }

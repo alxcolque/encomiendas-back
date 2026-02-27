@@ -7,11 +7,29 @@ use App\Http\Requests\RouteValueRequest;
 use App\Http\Resources\RouteValue\RouteValueCollection;
 use App\Http\Resources\RouteValue\RouteValueResource;
 
+use Illuminate\Http\Request;
+
 class RouteValueController extends Controller
 {
     public function index()
     {
         return new RouteValueCollection(RouteValue::with('cityA', 'cityB')->get());
+    }
+
+    public function findByCities(Request $request)
+    {
+        $cityA = $request->query('city_a');
+        $cityB = $request->query('city_b');
+
+        $routeValue = RouteValue::where('city_a', $cityA)
+            ->where('city_b', $cityB)
+            ->first();
+
+        if (!$routeValue) {
+            return response()->json(['data' => null]);
+        }
+
+        return new RouteValueResource($routeValue);
     }
 
     public function store(RouteValueRequest $request)

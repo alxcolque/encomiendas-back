@@ -78,6 +78,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('cities', CityController::class)->except(['index']); // Index is public
 
     // Route Values
+    Route::get('route-values/find', [RouteValueController::class, 'findByCities']);
     Route::apiResource('route-values', RouteValueController::class);
 
     // Settings (Admin only usually, but for now open to auth)
