@@ -12,6 +12,7 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\SocialLinkController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\BusinessController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -74,6 +75,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Cities (management)
     Route::apiResource('cities', CityController::class)->except(['index']); // Index is public
+
+    // Businesses
+    Route::apiResource('businesses', BusinessController::class);
 
     // Route Values
     Route::get('route-values/find', [RouteValueController::class, 'findByCities']);
