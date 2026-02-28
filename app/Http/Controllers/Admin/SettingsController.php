@@ -77,7 +77,10 @@ class SettingsController extends Controller
         DB::transaction(function () use ($request) {
             Faq::truncate();
             foreach ($request->faqs as $index => $faqData) {
-                // Handle order if not provided
+                // Sanitize data for creation
+                unset($faqData['id']);
+                unset($faqData['order']);
+
                 $faqData['order_index'] = $index + 1;
                 Faq::create($faqData);
             }

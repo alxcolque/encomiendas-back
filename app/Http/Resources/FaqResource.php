@@ -18,8 +18,9 @@ class FaqResource extends JsonResource
             'id' => $this->id,
             'question' => $this->question,
             'answer' => $this->answer,
-            'active' => $this->active,
-            'order' => $this->order_index, // Mapping order_index to order
+            'active' => (bool)$this->active,
+            'order' => $this->order_index,
+            'order_index' => $this->order_index, // Keep for backward compatibility if any
         ];
     }
 }

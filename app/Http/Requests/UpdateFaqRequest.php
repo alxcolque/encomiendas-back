@@ -18,9 +18,11 @@ class UpdateFaqRequest extends FormRequest
     {
         return [
             'faqs' => 'required|array',
+            'faqs.*.id' => 'nullable',
             'faqs.*.question' => 'required|string',
             'faqs.*.answer' => 'required|string',
             'faqs.*.active' => 'boolean',
+            'faqs.*.order' => 'nullable|integer',
         ];
     }
 }
