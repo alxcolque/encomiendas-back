@@ -10,7 +10,7 @@ class ShipmentController extends Controller
     public function index()
     {
         return new \App\Http\Resources\Shipment\ShipmentCollection(
-            Shipment::with(['originOffice', 'destinationOffice', 'events'])->paginate(20)
+            Shipment::with(['originOffice.city', 'destinationOffice.city', 'events', 'invoice'])->paginate(20)
         );
     }
 
@@ -77,7 +77,7 @@ class ShipmentController extends Controller
     public function show(Shipment $shipment)
     {
         return new \App\Http\Resources\Shipment\ShipmentResource(
-            $shipment->load(['originOffice', 'destinationOffice', 'events', 'invoice'])
+            $shipment->load(['originOffice.city', 'destinationOffice.city', 'events', 'invoice'])
         );
     }
 
@@ -96,7 +96,7 @@ class ShipmentController extends Controller
     public function track($tracking_code)
     {
         $shipment = Shipment::where('tracking_code', $tracking_code)
-            ->with(['originOffice', 'destinationOffice', 'events'])
+            ->with(['originOffice.city', 'destinationOffice.city', 'events'])
             ->firstOrFail();
 
         return new \App\Http\Resources\Shipment\ShipmentResource($shipment);

@@ -36,6 +36,7 @@ class ShipmentRequest extends FormRequest
             'current_status' => 'in:created,in_transit,at_office,out_for_delivery,delivered,cancelled',
             'estimated_delivery' => 'nullable|date',
             'price' => 'numeric|min:0',
+            'weight' => 'nullable|numeric|min:0',
 
             // Optional Invoice Data
             'with_invoice' => 'nullable|boolean',

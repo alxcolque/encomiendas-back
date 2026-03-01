@@ -24,6 +24,9 @@ class ShipmentResource extends JsonResource
             'current_status' => $this->current_status,
             'estimated_delivery' => $this->estimated_delivery,
             'price' => $this->price,
+            'weight' => $this->weight,
+            'is_pack' => $this->is_pack,
+            'observation' => $this->observation,
             'origin_office' => new OfficeResource($this->whenLoaded('originOffice')),
             'destination_office' => new OfficeResource($this->whenLoaded('destinationOffice')),
             'events' => ShipmentEventResource::collection($this->whenLoaded('events', function () {

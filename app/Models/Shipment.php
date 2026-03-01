@@ -13,7 +13,10 @@ class Shipment extends Model
     {
         static::creating(function ($shipment) {
             if (empty($shipment->tracking_code)) {
-                $shipment->tracking_code = 'KOL-' . strtoupper(bin2hex(random_bytes(4)));
+                /* KOL-(dos letras del origen)-(dos letras del destino)-(numeros incrementales) */
+                $origin_office = Office::find($shipment->origin_office_id);
+                $destination_office = Office::find($shipment->destination_office_id);
+                $shipment->tracking_code = 'KOL-' . strtoupper(substr($origin_office->city->name, 0, 2)) . '-' . strtoupper(substr($destination_office->city->name, 0, 2)) . '-' . str_pad(Shipment::count() + 1, 4, '0', STR_PAD_LEFT);
             }
         });
     }
@@ -33,6 +36,7 @@ class Shipment extends Model
         'current_status',
         'estimated_delivery',
         'price',
+        'weight',
     ];
 
     protected $casts = [

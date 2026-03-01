@@ -18,6 +18,7 @@ return new class extends Migration
             $table->tinyInteger('tracking_pay')->default(1); //1=sender, 2=receiver, 3=both
             $table->text('observation')->nullable();
             $table->boolean('is_pack')->default(true); //false=sobre, true=paquete
+            $table->decimal('weight', 10, 2)->nullable();
             $table->boolean('is_fragile')->default(false); //false=no, true=yes
             $table->enum('type_service', ['normal', 'standard', 'express'])->default('normal');
             $table->tinyInteger('track_type')->default(1); //1=terrestre, 2=aereo
