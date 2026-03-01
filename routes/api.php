@@ -100,6 +100,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])
         Route::put('/socials', [\App\Http\Controllers\Admin\SettingsController::class, 'updateSocials']);
         Route::put('/faqs', [\App\Http\Controllers\Admin\SettingsController::class, 'updateFaqs']);
         Route::put('/footer-links', [\App\Http\Controllers\Admin\SettingsController::class, 'updateFooterLinks']);
-        Route::put('/legal', [\App\Http\Controllers\Admin\SettingsController::class, 'updateLegal']);
+        Route::get('/legal', [\App\Http\Controllers\Admin\SettingsController::class, 'updateLegal']);
         Route::post('/logo', [\App\Http\Controllers\Admin\SettingsController::class, 'uploadLogo']);
+        Route::get('/stats', [\App\Http\Controllers\DashboardController::class, 'index']);
     });
