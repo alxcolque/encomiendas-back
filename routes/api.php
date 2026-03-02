@@ -49,9 +49,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 
     // User Profile
-    Route::get('/me', function (Request $request) {
-        return $request->user()->load('driverProfile');
-    });
+    Route::get('/me', [UserController::class, 'profile']);
+    Route::post('/profile/update', [UserController::class, 'updateProfile']);
+    Route::post('/profile/change-pin', [UserController::class, 'changePin']);
 
     // Users
     Route::apiResource('users', UserController::class);
