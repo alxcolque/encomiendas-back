@@ -38,6 +38,7 @@ Route::post('/auth/refresh', [AuthController::class, 'refresh']);
 Route::get('/offices', [OfficeController::class, 'index']); // Public list of offices
 Route::get('/faqs', [FaqController::class, 'index']);
 Route::get('/social-links', [SocialLinkController::class, 'index']);
+Route::get('/public/settings', [SettingController::class, 'publicSettings']);
 Route::get('/settings/{key}', [SettingController::class, 'show']); // Get specific setting (e.g., general)
 Route::get('/cities', [CityController::class, 'index']); // Public list of cities (for dropdowns)
 

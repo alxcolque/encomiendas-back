@@ -30,4 +30,32 @@ class SettingController extends Controller
         $setting = Setting::findOrFail($key);
         return new \App\Http\Resources\Setting\SettingResource($setting);
     }
+
+    public function publicSettings()
+    {
+        $setting = Setting::first();
+        if (!$setting) {
+            return response()->json(['message' => 'Settings not found'], 404);
+        }
+
+        $socials = \App\Models\SocialLink::all();
+        $faqs = \App\Models\Faq::where('active', true)->orderBy('order_index')->get();
+        $footerCategories = \App\Models\FooterLinkCategory::with(['links' => function ($q) {
+            $q->orderBy('order');
+        }])->get();
+
+        $footerLinks = [];
+        foreach ($footerCategories as $category) {
+            $footerLinks[$category->name] = \App\Http\Resources\FooterLinkResource::collection($category->links);
+        }
+
+        return response()->json([
+            'data' => [
+                'general' => new \App\Http\Resources\SettingResource($setting),
+                'socials' => \App\Http\Resources\SocialLinkResource::collection($socials),
+                'faqs' => \App\Http\Resources\FaqResource::collection($faqs),
+                'footerLinks' => $footerLinks,
+            ]
+        ]);
+    }
 }
