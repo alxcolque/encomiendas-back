@@ -22,7 +22,7 @@ return new class extends Migration
             $table->boolean('is_fragile')->default(false); //false=no, true=yes
             $table->enum('type_service', ['normal', 'standard', 'express'])->default('normal');
             $table->tinyInteger('track_type')->default(1); //1=terrestre, 2=aereo
-            $table->enum('current_status', ['created', 'in_transit', 'at_office', 'out_for_delivery', 'delivered', 'cancelled'])->default('created');
+            $table->string('current_status', 30)->default('created');
             $table->dateTime('estimated_delivery')->nullable();
             $table->decimal('price', 10, 2)->default(0.00);
             $table->timestamps();

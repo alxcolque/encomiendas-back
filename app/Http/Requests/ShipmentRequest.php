@@ -33,7 +33,7 @@ class ShipmentRequest extends FormRequest
             'type_service' => 'nullable|in:normal,standard,express',
             'track_type' => 'nullable|integer|in:1,2',
             'observation' => 'nullable|string',
-            'current_status' => 'in:created,in_transit,at_office,out_for_delivery,delivered,cancelled',
+            'current_status' => 'in:created,in_transit,at_office,delivered',
             'estimated_delivery' => 'nullable|date',
             'price' => 'numeric|min:0',
             'weight' => 'nullable|numeric|min:0',
