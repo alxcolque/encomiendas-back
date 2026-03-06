@@ -44,6 +44,12 @@ class ShipmentRequest extends FormRequest
             'invoice_name' => 'required_if:with_invoice,true|string|max:255',
         ];
 
+        if ($this->isMethod('patch')) {
+            $rules = collect($rules)->map(function ($rule) {
+                return 'sometimes|' . $rule;
+            })->toArray();
+        }
+
         if ($this->isMethod('post')) {
             $rules['tracking_code'] = 'nullable|string|unique:shipments,tracking_code|max:50';
         } else {
