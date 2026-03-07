@@ -41,6 +41,15 @@ class ShipmentController extends Controller
                 $data['receiver_id'] = $receiver->id;
             }
 
+            // Calculate estimated delivery
+            $typeService = $data['type_service'] ?? 'normal';
+            $daysToAdd = match ($typeService) {
+                'express'  => 2,
+                'standard' => 5,
+                default    => 8,
+            };
+            $data['estimated_delivery'] = now()->addDays($daysToAdd);
+
             $shipment = Shipment::create($data);
 
             // Handle Invoice

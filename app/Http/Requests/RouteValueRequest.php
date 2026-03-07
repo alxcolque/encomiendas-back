@@ -25,7 +25,14 @@ class RouteValueRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'city_a.required' => 'La ciudad de origen es obligatoria.',
+            'city_a.exists' => 'La ciudad de origen seleccionada no existe.',
+            'city_b.required' => 'La ciudad de destino es obligatoria.',
+            'city_b.exists' => 'La ciudad de destino seleccionada no existe.',
             'city_b.different' => 'Las ciudades de origen y destino no pueden ser iguales.',
+            'value.required' => 'El costo es obligatorio.',
+            'value.numeric' => 'El costo debe ser un número.',
+            'value.min' => 'El costo no puede ser negativo.',
         ];
     }
 }

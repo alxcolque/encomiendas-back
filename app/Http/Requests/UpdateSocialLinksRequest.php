@@ -23,4 +23,16 @@ class UpdateSocialLinksRequest extends FormRequest
             'socials.*.active' => 'boolean',
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'socials.required' => 'La lista de redes sociales es requerida.',
+            'socials.array' => 'Formato de redes sociales inválido.',
+            'socials.*.platform.required' => 'La plataforma es requerida para una de las redes.',
+            'socials.*.platform.in' => 'Una de las plataformas seleccionadas no es válida.',
+            'socials.*.url.required' => 'La URL es requerida para una de las redes.',
+            'socials.*.url.url' => 'Una de las URLs proporcionadas no es válida.',
+        ];
+    }
 }

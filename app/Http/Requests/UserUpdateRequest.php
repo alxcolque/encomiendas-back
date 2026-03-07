@@ -25,4 +25,18 @@ class UserUpdateRequest extends FormRequest
             'avatar' => 'nullable|string',
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'name.string' => 'El nombre debe ser texto.',
+            'name.max' => 'El nombre no debe exceder los 255 caracteres.',
+            'email.email' => 'El correo debe ser un correo válido.',
+            'email.unique' => 'El correo ya existe.',
+            'phone.max' => 'El teléfono no debe exceder los 20 caracteres.',
+            'phone.unique' => 'El teléfono ya existe.',
+            'pin.size' => 'El pin debe tener 4 dígitos.',
+            'role.in' => 'El rol debe ser admin, worker, driver o client.',
+        ];
+    }
 }

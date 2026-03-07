@@ -25,4 +25,13 @@ class UpdateFooterLinksRequest extends FormRequest
             'footerLinks.*.*.href' => 'required|string',
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'footerLinks.required' => 'Los enlaces son requeridos.',
+            'footerLinks.*.*.name.required' => 'Uno de los nombres de los enlaces está vacío.',
+            'footerLinks.*.*.href.required' => 'Una de las URLs de los enlaces está vacía.',
+        ];
+    }
 }

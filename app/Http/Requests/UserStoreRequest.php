@@ -22,4 +22,21 @@ class UserStoreRequest extends FormRequest
             'avatar' => 'nullable|string',
         ];
     }
+    /* Messages in spanish */
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'El nombre es requerido',
+            'email.required' => 'El correo es requerido',
+            'email.email' => 'El correo debe ser un correo valido',
+            'email.unique' => 'El correo ya existe',
+            'phone.required' => 'El telefono es requerido',
+            'phone.unique' => 'El telefono ya existe',
+            'pin.required' => 'El pin es requerido',
+            'pin.size' => 'El pin debe tener 4 digitos',
+            'role.required' => 'El rol es requerido',
+            'role.in' => 'El rol debe ser admin, worker, driver o client',
+            'avatar.required' => 'La imagen es requerida',
+        ];
+    }
 }

@@ -11,6 +11,9 @@ return new class extends Migration
         Schema::create('offices', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            /* image */
+            $table->string('image')->nullable();
+            $table->string('image_key')->nullable();
             $table->foreignId('city_id')->constrained()->cascadeOnDelete();
             $table->string('address');
             $table->enum('status', ['active', 'inactive'])->default('active');

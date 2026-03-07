@@ -190,7 +190,15 @@ class UserController extends Controller
     /* Profile */
     public function profile(Request $request)
     {
-        return response()->json($request->user()->load('driverProfile'));
+        $user = $request->user();
+
+        // Si el usuario autenticado es un Cliente (nuestro nuevo flujo)
+        if ($user instanceof \App\Models\Client) {
+            return response()->json($user);
+        }
+
+        // Si es un Usuario interno (Admin, Driver, etc), se carga su perfil de conductor si existe
+        return response()->json($user->load('driverProfile'));
     }
 
     // ✅ Actualizar nombre, email, phone o foto (Perfil propio)

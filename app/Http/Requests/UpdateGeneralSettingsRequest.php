@@ -25,4 +25,17 @@ class UpdateGeneralSettingsRequest extends FormRequest
             'address' => 'nullable|string|max:255',
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'site_name.required' => 'El nombre del sitio es obligatorio.',
+            'site_name.max' => 'El nombre del sitio no debe exceder los 255 caracteres.',
+            'support_email.required' => 'El correo de soporte es obligatorio.',
+            'support_email.email' => 'El correo de soporte debe ser válido.',
+            'support_email.max' => 'El correo de soporte no debe exceder los 255 caracteres.',
+            'support_phone.required' => 'El teléfono de soporte es obligatorio.',
+            'support_phone.max' => 'El teléfono de soporte no debe exceder los 50 caracteres.',
+        ];
+    }
 }

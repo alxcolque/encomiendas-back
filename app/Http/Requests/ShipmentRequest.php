@@ -58,4 +58,27 @@ class ShipmentRequest extends FormRequest
 
         return $rules;
     }
+
+    public function messages(): array
+    {
+        return [
+            'origin_office_id.required' => 'La oficina de origen es requerida.',
+            'origin_office_id.exists' => 'La oficina de origen no existe.',
+            'destination_office_id.required' => 'La oficina de destino es requerida.',
+            'destination_office_id.exists' => 'La oficina de destino no existe.',
+            'sender_id.exists' => 'El remitente seleccionado no existe.',
+            'receiver_id.exists' => 'El destinatario seleccionado no existe.',
+            'sender_name.required_without' => 'El nombre del remitente es requerido cuando no se selecciona un remitente existente.',
+            'sender_ci.required_without' => 'El CI del remitente es requerido.',
+            'sender_phone.required_without' => 'El teléfono del remitente es requerido.',
+            'receiver_name.required_without' => 'El nombre del destinatario es requerido cuando no se selecciona un destinatario existente.',
+            'receiver_ci.required_without' => 'El CI del destinatario es requerido.',
+            'receiver_phone.required_without' => 'El teléfono del destinatario es requerido.',
+            'price.numeric' => 'El precio debe ser un número.',
+            'price.min' => 'El precio no puede ser negativo.',
+            'invoice_nit.required_if' => 'El NIT es requerido si se solicita factura.',
+            'invoice_name.required_if' => 'El nombre para la factura es requerido.',
+            'tracking_code.unique' => 'El código de seguimiento ya está en uso.',
+        ];
+    }
 }

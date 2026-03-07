@@ -21,6 +21,19 @@ class OfficeRequest extends FormRequest
             'users.*' => 'exists:users,id',
             'status' => 'in:active,inactive',
             'coordinates' => 'nullable|string|max:100',
+            'image' => 'nullable|string',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'El nombre de la oficina es obligatorio.',
+            'city_id.required' => 'La ciudad es obligatoria.',
+            'city_id.exists' => 'La ciudad seleccionada no existe.',
+            'address.required' => 'La dirección es obligatoria.',
+            'users.*.exists' => 'Uno de los usuarios seleccionados no existe.',
+            'status.in' => 'El estado seleccionado es inválido.',
         ];
     }
 }

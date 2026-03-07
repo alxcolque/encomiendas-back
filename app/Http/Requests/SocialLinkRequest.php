@@ -19,4 +19,14 @@ class SocialLinkRequest extends FormRequest
             'active' => 'boolean',
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'platform.required' => 'La plataforma es requerida.',
+            'platform.max' => 'La plataforma no debe exceder los 50 caracteres.',
+            'url.required' => 'La URL es requerida.',
+            'url.max' => 'La URL no debe exceder los 255 caracteres.',
+        ];
+    }
 }

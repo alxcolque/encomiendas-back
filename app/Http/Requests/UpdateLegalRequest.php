@@ -21,4 +21,12 @@ class UpdateLegalRequest extends FormRequest
             'privacy_policy' => 'nullable|string',
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'terms_and_conditions.string' => 'Los términos y condiciones deben ser texto.',
+            'privacy_policy.string' => 'La política de privacidad debe ser texto.',
+        ];
+    }
 }

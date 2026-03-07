@@ -15,6 +15,8 @@ class Office extends Model
         'address',
         'status',
         'coordinates',
+        'image',
+        'image_key',
     ];
 
     public function city()

@@ -13,6 +13,7 @@ use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\SocialLinkController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BusinessController;
+use App\Http\Controllers\Api\ClientAuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -32,7 +33,11 @@ Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/logout', [AuthController::class, 'logout']);
 Route::post('/auth/refresh', [AuthController::class, 'refresh']);
 
-
+// Client Auth Routes
+Route::post('/client/login', [ClientAuthController::class, 'login']);
+Route::post('/client/register', [ClientAuthController::class, 'register']);
+Route::post('/client/logout', [AuthController::class, 'logout']); // Mismo logout revoca tokens
+Route::post('/client/refresh', [AuthController::class, 'refresh']); // Mismo refresh
 
 // Public Data
 Route::get('/offices', [OfficeController::class, 'index']); // Public list of offices
@@ -61,6 +66,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('clients/search', [ClientController::class, 'search']);
     Route::patch('clients/{client}/status/{status}', [ClientController::class, 'changeStatus']);
     Route::apiResource('clients', ClientController::class);
+
+    // Client Authenticated Endpoints
+    Route::get('client/shipments', [ClientAuthController::class, 'myShipments']);
 
     // Offices (Admin management)
     Route::apiResource('offices', OfficeController::class)->except(['index']); // Index is public

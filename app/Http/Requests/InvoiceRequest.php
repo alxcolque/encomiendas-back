@@ -44,4 +44,23 @@ class InvoiceRequest extends FormRequest
 
         return $rules;
     }
+
+    public function messages(): array
+    {
+        return [
+            'type.required' => 'El tipo de factura es obligatorio.',
+            'shipment_id.required' => 'El envío es obligatorio.',
+            'shipment_id.exists' => 'El envío seleccionado no existe.',
+            'business_name.required' => 'La razón social es obligatoria.',
+            'nit_ci_emisor.required' => 'El NIT/CI del emisor es obligatorio.',
+            'receipt_name.required' => 'El nombre del recibo es obligatorio.',
+            'doc_num.required' => 'El número de documento es obligatorio.',
+            'details.required' => 'Los detalles de la factura son obligatorios.',
+            'details.array' => 'Los detalles deben tener formato válido.',
+            'total.required' => 'El total es obligatorio.',
+            'total.numeric' => 'El total debe ser un número.',
+            'total.min' => 'El total no puede ser negativo.',
+            'invoice_number.unique' => 'El número de factura ya está en uso.',
+        ];
+    }
 }

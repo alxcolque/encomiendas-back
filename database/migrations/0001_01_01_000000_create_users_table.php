@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('email')->unique();
-            $table->string('phone', 20)->nullable();
+            $table->string('email')->unique()->nullable();
+            $table->string('phone', 20)->unique();
             $table->string('pin'); // 4 digits encrypted
-            $table->enum('role', ['admin', 'worker', 'driver'])->default('worker');
+            $table->enum('role', ['admin', 'worker', 'driver', 'client'])->default('client');
             $table->string('avatar')->nullable();
             $table->string('avatar_key')->nullable();
             $table->string('status')->default('active');

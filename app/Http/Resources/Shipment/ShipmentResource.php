@@ -12,6 +12,17 @@ class ShipmentResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        // Fallback for older orders without estimated_delivery
+        $estimatedDelivery = $this->estimated_delivery;
+        if (!$estimatedDelivery && $this->created_at) {
+            $daysToAdd = match ($this->type_service) {
+                'express'  => 2,
+                'standard' => 5,
+                default    => 8,
+            };
+            $estimatedDelivery = $this->created_at->copy()->addDays($daysToAdd);
+        }
+
         return [
             'id' => $this->id,
             'tracking_code' => $this->tracking_code,
@@ -22,7 +33,7 @@ class ShipmentResource extends JsonResource
             'receiver_name' => $this->receiver->name ?? null,
             'receiver_phone' => $this->receiver->phone ?? null,
             'current_status' => $this->current_status,
-            'estimated_delivery' => $this->estimated_delivery,
+            'estimated_delivery' => $estimatedDelivery,
             'price' => $this->price,
             'weight' => $this->weight,
             'is_pack' => $this->is_pack,

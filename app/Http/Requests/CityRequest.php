@@ -20,4 +20,14 @@ class CityRequest extends FormRequest
             'location' => 'nullable|string|max:250',
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'El nombre de la ciudad es obligatorio.',
+            'name.string' => 'El nombre de la ciudad debe ser texto.',
+            'name.max' => 'El nombre de la ciudad no debe exceder los 150 caracteres.',
+            'location.max' => 'La ubicación no debe exceder los 250 caracteres.',
+        ];
+    }
 }

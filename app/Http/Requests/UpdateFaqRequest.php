@@ -25,4 +25,14 @@ class UpdateFaqRequest extends FormRequest
             'faqs.*.order' => 'nullable|integer',
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'faqs.required' => 'La lista de preguntas es requerida.',
+            'faqs.array' => 'Formato de preguntas inválido.',
+            'faqs.*.question.required' => 'Una de las preguntas está vacía.',
+            'faqs.*.answer.required' => 'Una de las respuestas está vacía.',
+        ];
+    }
 }

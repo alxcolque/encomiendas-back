@@ -31,4 +31,16 @@ class BusinessUpdateRequest extends FormRequest
             'status' => 'sometimes|required|in:activo,inactivo,bloqueado',
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'company_name.required' => 'El nombre de la empresa es obligatorio.',
+            'company_name.max' => 'El nombre de la empresa no debe exceder los 255 caracteres.',
+            'phone.max' => 'El teléfono no debe exceder los 20 caracteres.',
+            'location.max' => 'La ubicación no debe exceder los 255 caracteres.',
+            'status.required' => 'El estado es obligatorio.',
+            'status.in' => 'El estado seleccionado es inválido.',
+        ];
+    }
 }

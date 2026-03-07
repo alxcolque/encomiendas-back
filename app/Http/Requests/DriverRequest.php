@@ -32,4 +32,20 @@ class DriverRequest extends FormRequest
 
         return $rules;
     }
+
+    public function messages(): array
+    {
+        return [
+            'vehicle_type.required' => 'El tipo de vehículo es obligatorio.',
+            'vehicle_type.max' => 'El tipo de vehículo no debe exceder los 50 caracteres.',
+            'plate_number.required' => 'El número de placa es obligatorio.',
+            'plate_number.max' => 'El número de placa no debe exceder los 20 caracteres.',
+            'license_number.required' => 'El número de licencia es obligatorio.',
+            'license_number.max' => 'El número de licencia no debe exceder los 50 caracteres.',
+            'status.in' => 'El estado seleccionado es inválido.',
+            'user_id.required' => 'El usuario es obligatorio.',
+            'user_id.exists' => 'El usuario seleccionado no existe.',
+            'user_id.unique' => 'Este usuario ya está asignado como conductor.',
+        ];
+    }
 }
