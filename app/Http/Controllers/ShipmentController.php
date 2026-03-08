@@ -53,9 +53,10 @@ class ShipmentController extends Controller
             $shipment = Shipment::create($data);
 
             // Handle Invoice
+
             if ($request->boolean('with_invoice')) {
                 \App\Models\Invoice::create([
-                    'type'           => 'con iva',
+                    'type'           => $request->invoice_type,
                     'shipment_id'    => $shipment->id,
                     'business_name'  => 'KOLMOX EXPRESS',
                     'nit_ci_emisor'  => '456489012',

@@ -14,7 +14,7 @@ return new class extends Migration
             $table->unsignedBigInteger('origin_office_id');
             $table->unsignedBigInteger('destination_office_id');
             $table->unsignedBigInteger('sender_id');
-            $table->unsignedBigInteger('receiver_id');
+            $table->unsignedBigInteger('receiver_id')->nullable();
             $table->tinyInteger('tracking_pay')->default(1); //1=sender, 2=receiver, 3=both
             $table->text('observation')->nullable();
             $table->boolean('is_pack')->default(true); //false=sobre, true=paquete
@@ -24,13 +24,17 @@ return new class extends Migration
             $table->tinyInteger('track_type')->default(1); //1=terrestre, 2=aereo
             $table->string('current_status', 30)->default('created');
             $table->dateTime('estimated_delivery')->nullable();
+            $table->boolean('with_invoice')->default(false);
+            $table->boolean('from_client')->default(false); // para saber si el cliente registró y poder hacer reportes posteriormente.
+            //discount
+            $table->decimal('discount', 10, 2)->default(0.00);
             $table->decimal('price', 10, 2)->default(0.00);
+
             $table->timestamps();
 
             $table->foreign('origin_office_id')->references('id')->on('offices')->onDelete('cascade');
             $table->foreign('destination_office_id')->references('id')->on('offices')->onDelete('cascade');
             $table->foreign('sender_id')->references('id')->on('clients')->onDelete('cascade');
-            $table->foreign('receiver_id')->references('id')->on('clients')->onDelete('cascade');
         });
     }
 
