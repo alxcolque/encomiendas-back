@@ -78,6 +78,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Shipments
     Route::apiResource('shipments', ShipmentController::class);
+    Route::post('shipments/{shipment}/invoice', [ShipmentController::class, 'generateInvoice']);
 
     // Invoices
     Route::apiResource('invoices', InvoiceController::class);

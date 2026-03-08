@@ -37,10 +37,16 @@ class Shipment extends Model
         'estimated_delivery',
         'price',
         'weight',
+        'with_invoice',
+        'from_client',
+        'discount',
     ];
 
     protected $casts = [
         'estimated_delivery' => 'datetime',
+        'with_invoice' => 'boolean',
+        'from_client' => 'boolean',
+        'discount' => 'decimal:2',
     ];
 
     public function originOffice()

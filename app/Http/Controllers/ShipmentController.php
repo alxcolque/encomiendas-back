@@ -31,7 +31,7 @@ class ShipmentController extends Controller
             }
 
             // Handle Receiver
-            if (!$request->filled('receiver_id')) {
+            if (!$request->filled('receiver_id') && $request->filled('receiver_name')) {
                 $receiver = \App\Models\Client::create([
                     'name'   => $request->receiver_name,
                     'ci_nit' => $request->receiver_ci,
@@ -39,6 +39,16 @@ class ShipmentController extends Controller
                     'status' => 'normal',
                 ]);
                 $data['receiver_id'] = $receiver->id;
+            } else if (!$request->filled('receiver_id')) {
+                $data['receiver_id'] = null;
+            }
+
+            // Check if user is client
+            $user = $request->user();
+            if ($user && get_class($user) === \App\Models\Client::class) {
+                $data['from_client'] = true;
+            } else {
+                $data['from_client'] = false;
             }
 
             // Calculate estimated delivery
@@ -53,32 +63,7 @@ class ShipmentController extends Controller
             $shipment = Shipment::create($data);
 
             // Handle Invoice
-
-            if ($request->boolean('with_invoice')) {
-                \App\Models\Invoice::create([
-                    'type'           => $request->invoice_type,
-                    'shipment_id'    => $shipment->id,
-                    'business_name'  => 'KOLMOX EXPRESS',
-                    'nit_ci_emisor'  => '456489012',
-                    'receipt_name'   => $request->invoice_name ?? $request->sender_name,
-                    'doc_num'        => $request->invoice_nit ?? $request->sender_ci,
-                    'details'        => [
-                        [
-                            'description' => 'SERVICIO DE TRANSPORTE DE ENCOMIENDA',
-                            'qty'         => 1,
-                            'unit'        => 58,
-                            'unit_price'  => $shipment->price,
-                            'discount'    => 0,
-                            'sub_total'   => $shipment->price,
-                        ]
-                    ],
-                    'payment_method' => 1, // 1 para efectivo
-                    'total'          => $shipment->price,
-                    'total_iva'      => $shipment->price,
-                    'currency'       => 'BOB',
-                    'status'         => 'paid',
-                ]);
-            }
+            // The invoice is now generated later via a separate endpoint explicitly called by the admin.
 
             return new \App\Http\Resources\Shipment\ShipmentResource($shipment->load('invoice'));
         });
@@ -93,8 +78,38 @@ class ShipmentController extends Controller
 
     public function update(\App\Http\Requests\ShipmentRequest $request, Shipment $shipment)
     {
-        $shipment->update($request->validated());
-        return new \App\Http\Resources\Shipment\ShipmentResource($shipment);
+        $data = $request->validated();
+
+        // Handle Receiver Update/Create
+        if ($request->filled('receiver_name')) {
+            if ($shipment->receiver_id) {
+                $shipment->receiver->update([
+                    'name'   => $request->receiver_name,
+                    'ci_nit' => $request->receiver_ci ?? $shipment->receiver->ci_nit,
+                    'phone'  => $request->receiver_phone ?? $shipment->receiver->phone,
+                ]);
+            } else {
+                $receiver = \App\Models\Client::create([
+                    'name'   => $request->receiver_name,
+                    'ci_nit' => $request->receiver_ci,
+                    'phone'  => $request->receiver_phone,
+                    'status' => 'normal',
+                ]);
+                $data['receiver_id'] = $receiver->id;
+            }
+        }
+
+        // Handle Sender Update
+        if ($request->filled('sender_name') && $shipment->sender_id) {
+            $shipment->sender->update([
+                'name'   => $request->sender_name,
+                'ci_nit' => $request->sender_ci ?? $shipment->sender->ci_nit,
+                'phone'  => $request->sender_phone ?? $shipment->sender->phone,
+            ]);
+        }
+
+        $shipment->update($data);
+        return new \App\Http\Resources\Shipment\ShipmentResource($shipment->load(['originOffice.city', 'destinationOffice.city', 'events', 'invoice']));
     }
 
     public function destroy(Shipment $shipment)
@@ -110,5 +125,50 @@ class ShipmentController extends Controller
             ->firstOrFail();
 
         return new \App\Http\Resources\Shipment\ShipmentResource($shipment);
+    }
+
+    public function generateInvoice(Request $request, Shipment $shipment)
+    {
+        $request->validate([
+            'invoice_type' => 'required|string',
+            'invoice_name' => 'nullable|string',
+            'invoice_nit' => 'nullable|string',
+        ]);
+
+        if ($shipment->invoice) {
+            return response()->json(['message' => 'Invoice already exists for this shipment.'], 400);
+        }
+
+        $invoice = \App\Models\Invoice::create([
+            'type'           => $request->invoice_type,
+            'shipment_id'    => $shipment->id,
+            'business_name'  => env('VITE_BUSINESS_NAME', 'KOLMOX EXPRESS'),
+            'nit_ci_emisor'  => env('VITE_BUSINESS_NIT', '456489012'),
+            'receipt_name'   => $request->invoice_name ?? $shipment->sender_name ?? 'S/N',
+            'doc_num'        => $request->invoice_nit ?? $shipment->sender_ci ?? '0',
+            'details'        => [
+                [
+                    'description' => 'SERVICIO DE TRANSPORTE DE ENCOMIENDA: ' . $shipment->observation,
+                    'qty'         => 1,
+                    'unit'        => 1,
+                    'unit_price'  => $shipment->price,
+                    'discount'    => 0,
+                    'sub_total'   => $shipment->price,
+                ]
+            ],
+            'payment_method' => 1, // 1 para efectivo
+            'total'          => $shipment->price,
+            'total_iva'      => $shipment->price,
+            'currency'       => 'BOB',
+            'status'         => 'paid',
+        ]);
+
+        // Ensure shipment with_invoice is updated
+        $shipment->update(['with_invoice' => true]);
+
+        return response()->json([
+            'message' => 'Invoice created successfully.',
+            'invoice' => new \App\Http\Resources\Invoice\InvoiceResource($invoice)
+        ], 201);
     }
 }
