@@ -7,6 +7,7 @@ use App\Http\Resources\Office\OfficeCollection;
 use App\Http\Resources\Office\OfficeResource;
 use App\Http\Requests\OfficeRequest;
 use App\Http\Controllers\Files\FileStorage;
+use Illuminate\Support\Facades\DB;
 
 class OfficeController extends Controller
 {
@@ -39,7 +40,11 @@ class OfficeController extends Controller
 
         $office = Office::create($data);
         if ($request->has('users')) {
-            $office->managers()->sync($request->input('users'));
+            $users = $request->input('users');
+            if (is_array($users) && count($users) > 0) {
+                DB::table('office_user')->whereIn('user_id', $users)->delete();
+            }
+            $office->managers()->sync($users);
         }
         $office->load('city', 'managers');
         return new OfficeResource($office);
@@ -78,7 +83,11 @@ class OfficeController extends Controller
 
         $office->update($data);
         if ($request->has('users')) {
-            $office->managers()->sync($request->input('users'));
+            $users = $request->input('users');
+            if (is_array($users) && count($users) > 0) {
+                DB::table('office_user')->whereIn('user_id', $users)->delete();
+            }
+            $office->managers()->sync($users);
         }
         $office->load('city', 'managers');
         return new OfficeResource($office);

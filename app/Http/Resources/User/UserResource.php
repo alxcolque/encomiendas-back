@@ -21,6 +21,14 @@ class UserResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'driver_profile' => new DriverResource($this->whenLoaded('driverProfile')),
+            'offices' => $this->whenLoaded('offices', function () {
+                return $this->offices->map(function ($office) {
+                    return [
+                        'id' => $office->id,
+                        'name' => $office->name,
+                    ];
+                });
+            }),
         ];
     }
 }

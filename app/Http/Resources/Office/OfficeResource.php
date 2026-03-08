@@ -19,6 +19,7 @@ class OfficeResource extends JsonResource
             'address'     => $this->address,
             'status'      => $this->status,
             'coordinates' => $this->coordinates,
+            'image'       => $this->image,
             'managers'    => $this->whenLoaded(
                 'managers',
                 fn() =>
