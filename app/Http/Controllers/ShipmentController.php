@@ -20,24 +20,28 @@ class ShipmentController extends Controller
             $data = $request->validated();
 
             // Handle Sender
-            if (!$request->filled('sender_id')) {
-                $sender = \App\Models\Client::create([
-                    'name'   => $request->sender_name,
-                    'ci_nit' => $request->sender_ci,
-                    'phone'  => $request->sender_phone,
-                    'status' => 'normal',
-                ]);
+            if (!$request->filled('sender_id') && $request->filled('sender_ci')) {
+                $sender = \App\Models\Client::firstOrCreate(
+                    ['ci_nit' => $request->sender_ci],
+                    [
+                        'name'   => $request->sender_name,
+                        'phone'  => $request->sender_phone,
+                        'status' => 'normal',
+                    ]
+                );
                 $data['sender_id'] = $sender->id;
             }
 
             // Handle Receiver
             if (!$request->filled('receiver_id') && $request->filled('receiver_name')) {
-                $receiver = \App\Models\Client::create([
-                    'name'   => $request->receiver_name,
-                    'ci_nit' => $request->receiver_ci,
-                    'phone'  => $request->receiver_phone,
-                    'status' => 'normal',
-                ]);
+                $receiver = \App\Models\Client::firstOrCreate(
+                    ['ci_nit' => $request->receiver_ci ?? '0'], // Use '0' or appropriate default if no CI is provided
+                    [
+                        'name'   => $request->receiver_name,
+                        'phone'  => $request->receiver_phone,
+                        'status' => 'normal',
+                    ]
+                );
                 $data['receiver_id'] = $receiver->id;
             } else if (!$request->filled('receiver_id')) {
                 $data['receiver_id'] = null;
@@ -89,12 +93,14 @@ class ShipmentController extends Controller
                     'phone'  => $request->receiver_phone ?? $shipment->receiver->phone,
                 ]);
             } else {
-                $receiver = \App\Models\Client::create([
-                    'name'   => $request->receiver_name,
-                    'ci_nit' => $request->receiver_ci,
-                    'phone'  => $request->receiver_phone,
-                    'status' => 'normal',
-                ]);
+                $receiver = \App\Models\Client::firstOrCreate(
+                    ['ci_nit' => $request->receiver_ci ?? '0'],
+                    [
+                        'name'   => $request->receiver_name,
+                        'phone'  => $request->receiver_phone,
+                        'status' => 'normal',
+                    ]
+                );
                 $data['receiver_id'] = $receiver->id;
             }
         }
@@ -114,6 +120,12 @@ class ShipmentController extends Controller
 
     public function destroy(Shipment $shipment)
     {
+        $user = request()->user();
+        if ($user && get_class($user) === \App\Models\Client::class) {
+            if ($shipment->sender_id !== $user->id || $shipment->current_status !== 'quote') {
+                return response()->json(['message' => 'No autorizado o el estado no permite eliminación.'], 403);
+            }
+        }
         $shipment->delete();
         return response()->noContent();
     }
@@ -163,8 +175,11 @@ class ShipmentController extends Controller
             'status'         => 'paid',
         ]);
 
-        // Ensure shipment with_invoice is updated
-        $shipment->update(['with_invoice' => true]);
+        // Ensure shipment with_invoice and status is updated
+        $shipment->update([
+            'with_invoice' => true,
+            'current_status' => 'created'
+        ]);
 
         return response()->json([
             'message' => 'Invoice created successfully.',

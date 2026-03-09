@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Shipment;
 use App\Models\Driver;
 use App\Models\Office;
+use App\Models\Invoice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -27,8 +28,8 @@ class DashboardController extends Controller
         $inTransit = Shipment::where('current_status', 'in_transit')->count();
         $delivered = Shipment::where('current_status', 'delivered')->whereBetween('created_at', [$startOfMonth, $now])->count();
 
-        $monthlyRevenue = Shipment::whereBetween('created_at', [$startOfMonth, $now])->sum('price');
-        $lastMonthRevenue = Shipment::whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])->sum('price');
+        $monthlyRevenue = Invoice::whereBetween('created_at', [$startOfMonth, $now])->sum('total');
+        $lastMonthRevenue = Invoice::whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])->sum('total');
         $revenueChange = $this->calculateChange($monthlyRevenue, $lastMonthRevenue);
 
         // 2. Chart Data (Last 7 months for trend)
@@ -121,10 +122,16 @@ class DashboardController extends Controller
         $data = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::now()->subMonths($i);
-            $query = Shipment::whereMonth('created_at', $date->month)
-                ->whereYear('created_at', $date->year);
 
-            $value = ($type === 'sum') ? $query->sum('price') : $query->count();
+            if ($type === 'sum') {
+                $query = Invoice::whereMonth('created_at', $date->month)
+                    ->whereYear('created_at', $date->year);
+                $value = $query->sum('total');
+            } else {
+                $query = Shipment::whereMonth('created_at', $date->month)
+                    ->whereYear('created_at', $date->year);
+                $value = $query->count();
+            }
 
             $data[] = [
                 'month' => $date->format('M'),
