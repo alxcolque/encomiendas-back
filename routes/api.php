@@ -13,6 +13,7 @@ use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\SocialLinkController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BusinessController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Api\ClientAuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -100,6 +101,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Social Links & FAQs (Admin management)
     Route::apiResource('social-links', SocialLinkController::class)->except(['index']);
     Route::apiResource('faqs', FaqController::class)->except(['index']);
+
+    // Reports
+    Route::get('reports', [ReportController::class, 'index']);
 });
 
 Route::middleware(['auth:sanctum', 'role:admin'])

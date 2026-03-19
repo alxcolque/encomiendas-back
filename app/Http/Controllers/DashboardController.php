@@ -28,8 +28,14 @@ class DashboardController extends Controller
         $inTransit = Shipment::where('current_status', 'in_transit')->count();
         $delivered = Shipment::where('current_status', 'delivered')->whereBetween('created_at', [$startOfMonth, $now])->count();
 
-        $monthlyRevenue = Invoice::whereBetween('created_at', [$startOfMonth, $now])->sum('total');
-        $lastMonthRevenue = Invoice::whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])->sum('total');
+        $monthlyRevenue = Invoice::whereBetween('created_at', [$startOfMonth, $now])
+            ->where('type', 'con')
+            ->where('status', '!=', 'Anulada')
+            ->sum('total');
+        $lastMonthRevenue = Invoice::whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])
+            ->where('type', 'con')
+            ->where('status', '!=', 'Anulada')
+            ->sum('total');
         $revenueChange = $this->calculateChange($monthlyRevenue, $lastMonthRevenue);
 
         // 2. Chart Data (Last 7 months for trend)
@@ -92,7 +98,7 @@ class DashboardController extends Controller
                 ],
                 [
                     'label' => 'Ingresos (Mes)',
-                    'value' => 'Bs ' . number_format($monthlyRevenue / 1000, 1) . 'k',
+                    'value' => 'Bs ' . number_format($monthlyRevenue, 1),
                     'change' => $revenueChange,
                     'trend' => $revenueChange >= 0 ? 'up' : 'down',
                     'icon' => 'TrendingUp'
@@ -125,7 +131,9 @@ class DashboardController extends Controller
 
             if ($type === 'sum') {
                 $query = Invoice::whereMonth('created_at', $date->month)
-                    ->whereYear('created_at', $date->year);
+                    ->whereYear('created_at', $date->year)
+                    ->where('type', 'con')
+                    ->where('status', '!=', 'Anulada');
                 $value = $query->sum('total');
             } else {
                 $query = Shipment::whereMonth('created_at', $date->month)
