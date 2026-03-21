@@ -21,7 +21,7 @@ class UserUpdateRequest extends FormRequest
             'email' => 'sometimes|email|unique:users,email,' . $userId,
             'phone' => 'sometimes|string|max:20|unique:users,phone,' . $userId,
             'pin' => 'nullable|string|size:4',
-            'role' => 'in:admin,worker,driver,client',
+            'role' => 'in:admin,worker,driver,client,company,partner',
             'avatar' => 'nullable|string',
         ];
     }
@@ -36,7 +36,7 @@ class UserUpdateRequest extends FormRequest
             'phone.max' => 'El teléfono no debe exceder los 20 caracteres.',
             'phone.unique' => 'El teléfono ya existe.',
             'pin.size' => 'El pin debe tener 4 dígitos.',
-            'role.in' => 'El rol debe ser admin, worker, driver o client.',
+            'role.in' => 'El rol debe ser admin, worker, driver, client, company o partner.',
         ];
     }
 }

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('email')->unique()->nullable();
             $table->string('phone', 20)->unique();
             $table->string('pin'); // 4 digits encrypted
-            $table->enum('role', ['admin', 'worker', 'driver', 'client'])->default('client');
+            $table->enum('role', ['admin', 'worker', 'driver', 'client', 'company', 'partner'])->default('client');
             $table->string('avatar')->nullable();
             $table->string('avatar_key')->nullable();
             $table->string('status')->default('active');

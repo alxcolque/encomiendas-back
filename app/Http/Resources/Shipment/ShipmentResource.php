@@ -44,6 +44,7 @@ class ShipmentResource extends JsonResource
             'height' => $this->height,
             'is_pack' => $this->is_pack,
             'is_fragile' => $this->is_fragile,
+            'with_invoice' => $this->with_invoice,
             'type_service' => $this->type_service,
             'track_type' => $this->track_type,
             'tracking_pay' => $this->tracking_pay,

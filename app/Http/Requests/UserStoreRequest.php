@@ -18,7 +18,7 @@ class UserStoreRequest extends FormRequest
             'email' => 'required|email|unique:users,email',
             'phone' => 'required|string|max:20|unique:users,phone',
             'pin' => 'required|string|size:4',
-            'role' => 'in:admin,worker,driver,client',
+            'role' => 'in:admin,worker,driver,client,company,partner',
             'avatar' => 'nullable|string',
         ];
     }
@@ -35,7 +35,7 @@ class UserStoreRequest extends FormRequest
             'pin.required' => 'El pin es requerido',
             'pin.size' => 'El pin debe tener 4 digitos',
             'role.required' => 'El rol es requerido',
-            'role.in' => 'El rol debe ser admin, worker, driver o client',
+            'role.in' => 'El rol debe ser admin, worker, driver, client, company o partner',
             'avatar.required' => 'La imagen es requerida',
         ];
     }
