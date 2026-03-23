@@ -23,7 +23,7 @@ class OfficeResource extends JsonResource
             'managers'    => $this->whenLoaded(
                 'managers',
                 fn() =>
-                $this->managers->map(fn($m) => ['id' => (string) $m->id, 'name' => $m->name])
+                $this->managers->map(fn($m) => ['id' => (string) $m->id, 'name' => $m->name, 'phone' => $m->phone])
             ),
             'created_at'  => $this->created_at,
             'updated_at'  => $this->updated_at,
