@@ -10,6 +10,26 @@ use Carbon\Carbon;
 
 class ReportController extends Controller
 {
+    private function applyShipmentRoleFilters($query)
+    {
+        $user = request()->user();
+        if ($user) {
+            if ($user->role === 'worker') {
+                $officeIds = $user->offices->pluck('id')->toArray();
+                $query->where(function ($q) use ($officeIds) {
+                    $q->whereIn('origin_office_id', $officeIds)
+                        ->orWhereIn('destination_office_id', $officeIds);
+                });
+            } elseif ($user->role === 'company') {
+                $query->where(function ($q) use ($user) {
+                    $q->where('origin_office_id', $user->id)
+                        ->orWhere('destination_office_id', $user->id);
+                });
+            }
+        }
+        return $query;
+    }
+
     public function index(Request $request)
     {
         $startDate = $request->query('start_date') ? Carbon::parse($request->query('start_date'))->startOfDay() : Carbon::now()->startOfMonth();
@@ -19,13 +39,14 @@ class ReportController extends Controller
         $monthlyRevenue = Invoice::whereBetween('created_at', [$startDate, $endDate])
             ->where('type', 'con')
             ->where('status', '!=', 'Anulada')
+            ->whereHas('shipment', fn($q) => $this->applyShipmentRoleFilters($q))
             ->sum('total');
 
-        $totalShipments = Shipment::whereBetween('created_at', [$startDate, $endDate])->count();
-        $deliveredShipments = Shipment::where('current_status', 'delivered')->whereBetween('created_at', [$startDate, $endDate])->count();
+        $totalShipments = $this->applyShipmentRoleFilters(Shipment::whereBetween('created_at', [$startDate, $endDate]))->count();
+        $deliveredShipments = $this->applyShipmentRoleFilters(Shipment::where('current_status', 'delivered')->whereBetween('created_at', [$startDate, $endDate]))->count();
         $deliveryEfficiency = $totalShipments > 0 ? round(($deliveredShipments / $totalShipments) * 100, 1) : 0;
 
-        $activeUsers = Shipment::whereBetween('created_at', [$startDate, $endDate])->distinct('sender_id')->count('sender_id');
+        $activeUsers = $this->applyShipmentRoleFilters(Shipment::whereBetween('created_at', [$startDate, $endDate]))->distinct('sender_id')->count('sender_id');
 
         // 2. Revenue Chart (Aggregate by day or month)
         $diffInDays = $startDate->diffInDays($endDate);
@@ -39,6 +60,7 @@ class ReportController extends Controller
                 ->whereBetween('created_at', [$startDate, $endDate])
                 ->where('type', 'con')
                 ->where('status', '!=', 'Anulada')
+                ->whereHas('shipment', fn($q) => $this->applyShipmentRoleFilters($q))
                 ->groupBy('date')
                 ->orderBy('date')
                 ->get();
@@ -51,11 +73,11 @@ class ReportController extends Controller
             });
 
             // Shipment volume (Daily)
-            $volumeQuery = Shipment::select(
+            $volumeQuery = $this->applyShipmentRoleFilters(Shipment::select(
                 DB::raw('DATE(created_at) as date'),
                 DB::raw('COUNT(*) as packages')
             )
-                ->whereBetween('created_at', [$startDate, $endDate])
+                ->whereBetween('created_at', [$startDate, $endDate]))
                 ->groupBy('date')
                 ->orderBy('date')
                 ->get();
@@ -75,6 +97,7 @@ class ReportController extends Controller
                 ->whereBetween('created_at', [$startDate, $endDate])
                 ->where('type', 'con')
                 ->where('status', '!=', 'Anulada')
+                ->whereHas('shipment', fn($q) => $this->applyShipmentRoleFilters($q))
                 ->groupBy('year', 'month')
                 ->orderBy('year')->orderBy('month')
                 ->get();
@@ -88,11 +111,11 @@ class ReportController extends Controller
             });
 
             // Shipment volume (Monthly)
-            $volumeQuery = Shipment::select(
+            $volumeQuery = $this->applyShipmentRoleFilters(Shipment::select(
                 DB::raw('YEAR(created_at) as year, MONTH(created_at) as month'),
                 DB::raw('COUNT(*) as packages')
             )
-                ->whereBetween('created_at', [$startDate, $endDate])
+                ->whereBetween('created_at', [$startDate, $endDate]))
                 ->groupBy('year', 'month')
                 ->orderBy('year')->orderBy('month')
                 ->get();
@@ -107,8 +130,8 @@ class ReportController extends Controller
         }
 
         // 3. Status Distribution
-        $statusDistribution = Shipment::select('current_status as browser', DB::raw('count(*) as visitors'))
-            ->whereBetween('created_at', [$startDate, $endDate])
+        $statusDistribution = $this->applyShipmentRoleFilters(Shipment::select('current_status as browser', DB::raw('count(*) as visitors'))
+            ->whereBetween('created_at', [$startDate, $endDate]))
             ->groupBy('current_status')
             ->get()
             ->map(function ($item) {

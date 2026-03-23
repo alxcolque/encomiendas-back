@@ -12,6 +12,25 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
+    private function applyShipmentRoleFilters($query)
+    {
+        $user = request()->user();
+        if ($user) {
+            if ($user->role === 'worker') {
+                $officeIds = $user->offices->pluck('id')->toArray();
+                $query->where(function ($q) use ($officeIds) {
+                    $q->whereIn('origin_office_id', $officeIds)
+                        ->orWhereIn('destination_office_id', $officeIds);
+                });
+            } elseif ($user->role === 'company') {
+                $query->where(function ($q) use ($user) {
+                    $q->where('origin_office_id', $user->id)
+                        ->orWhere('destination_office_id', $user->id);
+                });
+            }
+        }
+        return $query;
+    }
     public function index()
     {
         $now = Carbon::now();
@@ -21,20 +40,22 @@ class DashboardController extends Controller
         $endOfLastMonth = $lastMonth->copy()->endOfMonth();
 
         // 1. KPI Stats
-        $monthlyShipments = Shipment::whereBetween('created_at', [$startOfMonth, $now])->count();
-        $lastMonthShipments = Shipment::whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])->count();
+        $monthlyShipments = $this->applyShipmentRoleFilters(Shipment::whereBetween('created_at', [$startOfMonth, $now]))->count();
+        $lastMonthShipments = $this->applyShipmentRoleFilters(Shipment::whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth]))->count();
         $shipmentsChange = $this->calculateChange($monthlyShipments, $lastMonthShipments);
 
-        $inTransit = Shipment::where('current_status', 'in_transit')->count();
-        $delivered = Shipment::where('current_status', 'delivered')->whereBetween('created_at', [$startOfMonth, $now])->count();
+        $inTransit = $this->applyShipmentRoleFilters(Shipment::where('current_status', 'in_transit'))->count();
+        $delivered = $this->applyShipmentRoleFilters(Shipment::where('current_status', 'delivered')->whereBetween('created_at', [$startOfMonth, $now]))->count();
 
         $monthlyRevenue = Invoice::whereBetween('created_at', [$startOfMonth, $now])
             ->where('type', 'con')
             ->where('status', '!=', 'Anulada')
+            ->whereHas('shipment', fn($q) => $this->applyShipmentRoleFilters($q))
             ->sum('total');
         $lastMonthRevenue = Invoice::whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])
             ->where('type', 'con')
             ->where('status', '!=', 'Anulada')
+            ->whereHas('shipment', fn($q) => $this->applyShipmentRoleFilters($q))
             ->sum('total');
         $revenueChange = $this->calculateChange($monthlyRevenue, $lastMonthRevenue);
 
@@ -43,13 +64,13 @@ class DashboardController extends Controller
         $revenueChart = $this->getMonthlyTrend('sum');
 
         // 3. Status Distribution
-        $statusDistribution = Shipment::select('current_status', DB::raw('count(*) as total'))
+        $statusDistribution = $this->applyShipmentRoleFilters(Shipment::select('current_status', DB::raw('count(*) as total')))
             ->groupBy('current_status')
             ->get()
             ->mapWithKeys(fn($item) => [$item->current_status => $item->total]);
 
         // 4. Recent Shipments
-        $recentShipments = Shipment::with(['originOffice.city', 'destinationOffice.city', 'sender', 'receiver'])
+        $recentShipments = $this->applyShipmentRoleFilters(Shipment::with(['originOffice.city', 'destinationOffice.city', 'sender', 'receiver']))
             ->latest()
             ->limit(5)
             ->get();
@@ -133,11 +154,12 @@ class DashboardController extends Controller
                 $query = Invoice::whereMonth('created_at', $date->month)
                     ->whereYear('created_at', $date->year)
                     ->where('type', 'con')
-                    ->where('status', '!=', 'Anulada');
+                    ->where('status', '!=', 'Anulada')
+                    ->whereHas('shipment', fn($q) => $this->applyShipmentRoleFilters($q));
                 $value = $query->sum('total');
             } else {
-                $query = Shipment::whereMonth('created_at', $date->month)
-                    ->whereYear('created_at', $date->year);
+                $query = $this->applyShipmentRoleFilters(Shipment::whereMonth('created_at', $date->month)
+                    ->whereYear('created_at', $date->year));
                 $value = $query->count();
             }
 

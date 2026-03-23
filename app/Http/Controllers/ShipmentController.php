@@ -9,8 +9,26 @@ class ShipmentController extends Controller
 {
     public function index()
     {
+        $user = request()->user();
+        $query = Shipment::with(['originOffice.city', 'destinationOffice.city', 'events', 'invoice']);
+
+        if ($user) {
+            if ($user->role === 'worker') {
+                $officeIds = $user->offices->pluck('id')->toArray();
+                $query->where(function ($q) use ($officeIds) {
+                    $q->whereIn('origin_office_id', $officeIds)
+                        ->orWhereIn('destination_office_id', $officeIds);
+                });
+            } elseif ($user->role === 'company') {
+                $query->where(function ($q) use ($user) {
+                    $q->where('origin_office_id', $user->id)
+                        ->orWhere('destination_office_id', $user->id);
+                });
+            }
+        }
+
         return new \App\Http\Resources\Shipment\ShipmentCollection(
-            Shipment::with(['originOffice.city', 'destinationOffice.city', 'events', 'invoice'])->paginate(20)
+            $query->orderBy('created_at', 'desc')->paginate(20)
         );
     }
 

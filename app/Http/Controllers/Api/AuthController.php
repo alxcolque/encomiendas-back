@@ -22,6 +22,12 @@ class AuthController extends Controller
             return response()->json(['message' => 'Credenciales inválidas'], 401);
         }
 
+        if ($user->role === 'worker') {
+            if ($user->offices()->count() === 0) {
+                return response()->json(['message' => 'No tiene agencia asignada. Acceso denegado.'], 403);
+            }
+        }
+
         // Crear Access Token (Corto: 15 mins)
         $accessToken = $user->createToken('access_token', ['*'], now()->addMinutes(15))->plainTextToken;
 
@@ -70,10 +76,14 @@ class AuthController extends Controller
         ]);
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
         // Revocar tokens del usuario actual
-        auth()->user()->tokens()->delete();
+        /** @var \App\Models\User|null $user */
+        $user = $request->user();
+        if ($user) {
+            $user->tokens()->delete();
+        }
 
         // Eliminar la cookie
         $cookie = Cookie::forget('refresh_token');
