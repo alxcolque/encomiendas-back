@@ -59,6 +59,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [UserController::class, 'profile']);
     Route::post('/profile/update', [UserController::class, 'updateProfile']);
     Route::post('/profile/change-pin', [UserController::class, 'changePin']);
+    Route::post('/profile/delete-me', [UserController::class, 'deleteMe']);
 
     // Users
     Route::apiResource('users', UserController::class);

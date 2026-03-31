@@ -264,4 +264,76 @@ class UserController extends Controller
 
         return response()->json(['message' => 'PIN actualizado correctamente.']);
     }
+
+    /**
+     * Delete self account
+     */
+    public function deleteMe(Request $request)
+    {
+        $request->validate([
+            'pin' => 'required|string',
+            'reasons' => 'nullable|array'
+        ]);
+
+        $user = $request->user();
+
+        // 1. Verify PIN
+        if (!Hash::check($request->pin, $user->pin)) {
+            return response()->json([
+                "message" => "El PIN proporcionado es incorrecto."
+            ], 422);
+        }
+
+        // 2. Protect Admin (id 1)
+        if ($user->id == 1) {
+            return response()->json([
+                "message" => "No se puede eliminar la cuenta del administrador principal."
+            ], 403);
+        }
+
+        \Illuminate\Support\Facades\DB::beginTransaction();
+        try {
+            // Attempt physical deletion
+            // Note: If relate tables have restrict on delete, this will throw QueryException
+            $user->tokens()->delete(); // Revoke all tokens
+            
+            try {
+                $user->forceDelete();
+                \Illuminate\Support\Facades\DB::commit();
+                return response()->json([
+                    "message" => "Tu cuenta ha sido eliminada permanentemente. Lamentamos verte partir."
+                ]);
+            } catch (\Illuminate\Database\QueryException $e) {
+                // If deletion fails due to foreign keys, perform data anonymization
+                $id = $user->id;
+                
+                // Anonymize personal data
+                $user->name = "eliminado[" . $id . "]";
+                $user->email = "eliminado[" . $id . "]@eliminado.com";
+                $user->phone = "eliminado[" . $id . "]"; // Release phone number
+                $user->status = "deleted";
+                $user->pin = Hash::make(\Illuminate\Support\Str::random(16)); // Randomize pin to disable access
+                
+                // Clear nullables
+                $user->avatar = null;
+                $user->avatar_key = null;
+                $user->email_verified_at = null;
+                
+                $user->save();
+                
+                \Illuminate\Support\Facades\DB::commit();
+                
+                return response()->json([
+                    "message" => "Tu cuenta y datos personales han sido anonimizados correctamente. Lamentamos verte partir."
+                ]);
+            }
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            return response()->json([
+                "message" => "Ocurrió un error al procesar la solicitud de baja.",
+                "error" => $e->getMessage()
+            ], 500);
+        }
+    }
 }
