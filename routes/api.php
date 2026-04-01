@@ -50,6 +50,7 @@ Route::get('/cities', [CityController::class, 'index']); // Public list of citie
 
 // Public Shipment Tracking
 Route::get('/shipments/track/{code}', [ShipmentController::class, 'track']);
+Route::get('/public/businesses/verify/{code}', [BusinessController::class, 'verifyByCode']);
 
 // Protected Routes
 Route::middleware('auth:sanctum')->group(function () {

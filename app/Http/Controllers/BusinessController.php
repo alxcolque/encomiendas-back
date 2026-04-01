@@ -56,4 +56,21 @@ class BusinessController extends Controller
             'message' => 'Empresa eliminada correctamente.',
         ]);
     }
+
+    /**
+     * Verify a business by its verification code.
+     */
+    public function verifyByCode($code)
+    {
+        $business = Business::where('code', $code)->first();
+
+        if (!$business) {
+            return response()->json([
+                'message' => 'No existe la empresa o el negocio',
+                'data' => null
+            ], 404);
+        }
+
+        return new BusinessResource($business);
+    }
 }
