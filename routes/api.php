@@ -93,6 +93,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('businesses', BusinessController::class);
 
     // Route Values
+    Route::post('route-values/generate', [RouteValueController::class, 'generate']);
     Route::get('route-values/find', [RouteValueController::class, 'findByCities']);
     Route::apiResource('route-values', RouteValueController::class);
 
