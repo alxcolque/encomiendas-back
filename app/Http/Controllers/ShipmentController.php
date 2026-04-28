@@ -157,6 +157,41 @@ class ShipmentController extends Controller
         return new \App\Http\Resources\Shipment\ShipmentResource($shipment);
     }
 
+    public function scan(Request $request)
+    {
+        $request->validate([
+            'tracking_code' => 'required|string',
+        ]);
+
+        $shipment = Shipment::where('tracking_code', $request->tracking_code)->first();
+
+        if (!$shipment) {
+            return response()->json(['message' => 'Código de seguimiento no encontrado'], 404);
+        }
+
+        $states = ['quote', 'created', 'in_transit', 'at_office', 'delivered'];
+        $currentIndex = array_search($shipment->current_status, $states);
+
+        if ($currentIndex === false) {
+            return response()->json(['message' => 'Estado actual desconocido'], 400);
+        }
+
+        if ($currentIndex === count($states) - 1) {
+            return response()->json(['message' => 'La encomienda ya se encuentra en el estado final (Entregado)'], 400);
+        }
+
+        $newStatus = $states[$currentIndex + 1];
+
+        $shipment->update([
+            'current_status' => $newStatus
+        ]);
+
+        return response()->json([
+            'message' => 'Estado actualizado correctamente',
+            'new_status' => $newStatus
+        ]);
+    }
+
     public function generateInvoice(Request $request, Shipment $shipment)
     {
         $request->validate([

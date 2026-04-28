@@ -80,6 +80,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('drivers', DriverController::class);
 
     // Shipments
+    Route::post('shipments/scan', [ShipmentController::class, 'scan']);
     Route::apiResource('shipments', ShipmentController::class);
     Route::post('shipments/{shipment}/invoice', [ShipmentController::class, 'generateInvoice']);
 
