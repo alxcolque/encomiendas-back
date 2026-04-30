@@ -12,32 +12,87 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
+    private $cachedOfficeIds = -1;
+
+    /**
+     * Get IDs of all offices in the cities assigned to the current worker.
+     */
+    private function getTargetOfficeIds()
+    {
+        if ($this->cachedOfficeIds !== -1) return $this->cachedOfficeIds;
+
+        $user = auth()->user();
+        if (!$user) return $this->cachedOfficeIds = [];
+
+        if ($user->role === 'admin') {
+            return $this->cachedOfficeIds = null; // Admin sees all
+        }
+
+        // Get cities assigned to worker via their offices
+        $cityIds = DB::table('office_user')
+            ->join('offices', 'office_user.office_id', '=', 'offices.id')
+            ->where('office_user.user_id', $user->id)
+            ->pluck('offices.city_id')
+            ->unique()
+            ->toArray();
+
+        if (empty($cityIds)) {
+            return $this->cachedOfficeIds = [];
+        }
+
+        // Get all offices in those cities
+        return $this->cachedOfficeIds = Office::whereIn('city_id', $cityIds)->pluck('id')->toArray();
+    }
+
+    /**
+     * Apply role-based filters to a shipment query.
+     */
     private function applyShipmentRoleFilters($query)
     {
-        $user = request()->user();
-        if ($user) {
-            if ($user->role === 'worker') {
-                $officeIds = $user->offices->pluck('id')->toArray();
-                $query->where(function ($q) use ($officeIds) {
-                    $q->whereIn('origin_office_id', $officeIds)
-                        ->orWhereIn('destination_office_id', $officeIds);
-                });
-            } elseif ($user->role === 'company') {
-                $query->where(function ($q) use ($user) {
-                    $q->where('origin_office_id', $user->id)
-                        ->orWhere('destination_office_id', $user->id);
-                });
+        $user = auth()->user();
+        if (!$user) return $query;
+
+        if ($user->role === 'worker') {
+            $officeIds = $this->getTargetOfficeIds();
+            
+            if (empty($officeIds)) {
+                $query->whereRaw('1 = 0'); // Force empty result
+                return $query;
             }
+
+            $query->where(function ($q) use ($officeIds) {
+                $q->whereIn('origin_office_id', $officeIds)
+                    ->orWhereIn('destination_office_id', $officeIds);
+            });
+        } elseif ($user->role === 'company') {
+            $query->where(function ($q) use ($user) {
+                $q->where('origin_office_id', $user->id)
+                    ->orWhere('destination_office_id', $user->id);
+            });
         }
+        
         return $query;
     }
+
     public function index()
     {
+        $user = auth()->user();
         $now = Carbon::now();
         $startOfMonth = $now->copy()->startOfMonth();
         $lastMonth = $now->copy()->subMonth();
         $startOfLastMonth = $lastMonth->copy()->startOfMonth();
         $endOfLastMonth = $lastMonth->copy()->endOfMonth();
+
+        $officeIds = $this->getTargetOfficeIds();
+        $cityName = null;
+        if ($user->role === 'worker') {
+            // Get the name of the first assigned city for the header
+            $cityName = DB::table('office_user')
+                ->join('offices', 'office_user.office_id', '=', 'offices.id')
+                ->join('cities', 'offices.city_id', '=', 'cities.id')
+                ->where('office_user.user_id', $user->id)
+                ->value('cities.name');
+        }
 
         // 1. KPI Stats
         $monthlyShipments = $this->applyShipmentRoleFilters(Shipment::whereBetween('created_at', [$startOfMonth, $now]))->count();
@@ -50,16 +105,22 @@ class DashboardController extends Controller
         $monthlyRevenue = Invoice::whereBetween('created_at', [$startOfMonth, $now])
             ->where('type', 'con')
             ->where('status', '!=', 'Anulada')
-            ->whereHas('shipment', fn($q) => $this->applyShipmentRoleFilters($q))
+            ->whereHas('shipment', function($q) {
+                $this->applyShipmentRoleFilters($q);
+            })
             ->sum('total');
+        
         $lastMonthRevenue = Invoice::whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])
             ->where('type', 'con')
             ->where('status', '!=', 'Anulada')
-            ->whereHas('shipment', fn($q) => $this->applyShipmentRoleFilters($q))
+            ->whereHas('shipment', function($q) {
+                $this->applyShipmentRoleFilters($q);
+            })
             ->sum('total');
+        
         $revenueChange = $this->calculateChange($monthlyRevenue, $lastMonthRevenue);
 
-        // 2. Chart Data (Last 7 months for trend)
+        // 2. Chart Data
         $shipmentsChart = $this->getMonthlyTrend('count');
         $revenueChart = $this->getMonthlyTrend('sum');
 
@@ -72,14 +133,17 @@ class DashboardController extends Controller
         // 4. Recent Shipments
         $recentShipments = $this->applyShipmentRoleFilters(Shipment::with(['originOffice.city', 'destinationOffice.city', 'sender', 'receiver']))
             ->latest()
-            ->limit(5)
+            ->limit(10)
             ->get();
 
         $recentShipmentsResource = \App\Http\Resources\Shipment\ShipmentResource::collection($recentShipments);
 
-        // 5. Office Performance (Shipments sent by office)
-        $officePerformance = Office::withCount('shipmentsSent')
-            ->orderByDesc('shipments_sent_count')
+        // 5. Office Performance (only for relevant offices)
+        $performanceQuery = Office::withCount('shipmentsSent');
+        if ($officeIds !== null) {
+            $performanceQuery->whereIn('id', $officeIds);
+        }
+        $officePerformance = $performanceQuery->orderByDesc('shipments_sent_count')
             ->limit(5)
             ->get()
             ->map(fn($office) => [
@@ -87,14 +151,12 @@ class DashboardController extends Controller
                 'total' => $office->shipments_sent_count,
             ]);
 
-        // 6. Active Drivers Summary
-        $activeDrivers = Driver::with('user')->where('status', 'active')->limit(5)->get();
-        $activeDriversResource = \App\Http\Resources\Driver\DriverResource::collection($activeDrivers);
-
+        // 6. Global Counts (adjust total offices for workers)
         $activeDriversCount = Driver::where('status', 'active')->count();
-        $totalOfficesCount = Office::where('status', 'active')->count();
+        $totalOfficesCount = ($officeIds !== null) ? count($officeIds) : Office::where('status', 'active')->count();
 
         return response()->json([
+            'city_name' => $cityName,
             'kpi' => [
                 [
                     'label' => 'Total Encomiendas (Mes)',
@@ -106,14 +168,14 @@ class DashboardController extends Controller
                 [
                     'label' => 'En Tránsito',
                     'value' => number_format($inTransit),
-                    'change' => 0, // Simplified
+                    'change' => 0,
                     'trend' => 'up',
                     'icon' => 'Truck'
                 ],
                 [
                     'label' => 'Entregadas (Mes)',
                     'value' => number_format($delivered),
-                    'change' => 0, // Simplified
+                    'change' => 0,
                     'trend' => 'up',
                     'icon' => 'CheckCircle2'
                 ],
@@ -132,7 +194,6 @@ class DashboardController extends Controller
             ],
             'recent_shipments' => $recentShipmentsResource,
             'office_performance' => $officePerformance,
-            'active_drivers' => $activeDriversResource,
             'active_drivers_count' => $activeDriversCount,
             'total_offices_count' => $totalOfficesCount
         ]);
@@ -155,7 +216,9 @@ class DashboardController extends Controller
                     ->whereYear('created_at', $date->year)
                     ->where('type', 'con')
                     ->where('status', '!=', 'Anulada')
-                    ->whereHas('shipment', fn($q) => $this->applyShipmentRoleFilters($q));
+                    ->whereHas('shipment', function($q) {
+                        $this->applyShipmentRoleFilters($q);
+                    });
                 $value = $query->sum('total');
             } else {
                 $query = $this->applyShipmentRoleFilters(Shipment::whereMonth('created_at', $date->month)

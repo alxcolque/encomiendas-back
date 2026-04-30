@@ -120,5 +120,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])
         Route::put('/footer-links', [\App\Http\Controllers\Admin\SettingsController::class, 'updateFooterLinks']);
         Route::get('/legal', [\App\Http\Controllers\Admin\SettingsController::class, 'updateLegal']);
         Route::post('/logo', [\App\Http\Controllers\Admin\SettingsController::class, 'uploadLogo']);
-        Route::get('/stats', [\App\Http\Controllers\DashboardController::class, 'index']);
     });
+
+Route::middleware(['auth:sanctum', 'role:admin,worker'])
+    ->get('/admin/settings/stats', [\App\Http\Controllers\DashboardController::class, 'index']);

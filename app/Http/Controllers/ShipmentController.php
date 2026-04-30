@@ -14,11 +14,22 @@ class ShipmentController extends Controller
 
         if ($user) {
             if ($user->role === 'worker') {
-                $officeIds = $user->offices->pluck('id')->toArray();
-                $query->where(function ($q) use ($officeIds) {
-                    $q->whereIn('origin_office_id', $officeIds)
-                        ->orWhereIn('destination_office_id', $officeIds);
-                });
+                $cityIds = \Illuminate\Support\Facades\DB::table('office_user')
+                    ->join('offices', 'office_user.office_id', '=', 'offices.id')
+                    ->where('office_user.user_id', $user->id)
+                    ->pluck('offices.city_id')
+                    ->unique()
+                    ->toArray();
+
+                if (empty($cityIds)) {
+                    $query->whereRaw('1 = 0');
+                } else {
+                    $officeIds = \App\Models\Office::whereIn('city_id', $cityIds)->pluck('id')->toArray();
+                    $query->where(function ($q) use ($officeIds) {
+                        $q->whereIn('origin_office_id', $officeIds)
+                            ->orWhereIn('destination_office_id', $officeIds);
+                    });
+                }
             } elseif ($user->role === 'company') {
                 $query->where(function ($q) use ($user) {
                     $q->where('origin_office_id', $user->id)
@@ -132,6 +143,12 @@ class ShipmentController extends Controller
             ]);
         }
 
+        if ($request->filled('current_status') && $request->current_status === 'delivered') {
+            if (!$shipment->invoice()->exists()) {
+                return response()->json(['message' => 'No se puede marcar como entregado si no ha sido pagado.'], 400);
+            }
+        }
+
         $shipment->update($data);
         return new \App\Http\Resources\Shipment\ShipmentResource($shipment->load(['originOffice.city', 'destinationOffice.city', 'events', 'invoice']));
     }
@@ -167,6 +184,20 @@ class ShipmentController extends Controller
 
         if (!$shipment) {
             return response()->json(['message' => 'Código de seguimiento no encontrado'], 404);
+        }
+
+        // Validación: Debe estar pagado (tiene factura) o por pagar (tracking_pay = 2)
+        $isPaid = $shipment->invoice()->exists();
+        $isToPay = $shipment->tracking_pay == 2;
+
+        if (!$isPaid && !$isToPay) {
+            return response()->json(['message' => 'La encomienda debe estar pagada o por pagar para cambiar su estado.'], 400);
+        }
+
+        // Validación: Solo estados específicos permiten cambio vía QR
+        $allowedStates = ['created', 'in_transit', 'at_office'];
+        if (!in_array($shipment->current_status, $allowedStates)) {
+            return response()->json(['message' => 'El estado actual no permite cambios vía QR.'], 400);
         }
 
         $states = ['quote', 'created', 'in_transit', 'at_office', 'delivered'];
