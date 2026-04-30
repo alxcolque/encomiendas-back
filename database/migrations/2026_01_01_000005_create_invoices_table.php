@@ -41,7 +41,7 @@ return new class extends Migration
             $table->decimal('total', 10, 2);
             $table->decimal('total_iva', 10, 2)->default(0);
             $table->string('currency', 50)->default('BOB');
-            $table->string('status', 50)->default('paid'); //Ej: Válida, Anulada, Emitida Contingencia
+            $table->string('status', 50)->default('paid'); //Ej: Válida, Anulada, Emitida Contingencia. paid, unpaid
             $table->timestamps();
         });
     }
