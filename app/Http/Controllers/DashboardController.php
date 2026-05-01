@@ -152,6 +152,12 @@ class DashboardController extends Controller
             ]);
 
         // 6. Global Counts (adjust total offices for workers)
+        $activeDrivers = Driver::with('user')->where('status', 'active')->limit(5)->get()->map(fn($driver) => [
+            'id' => $driver->user_id,
+            'name' => $driver->user->name,
+            'avatar' => $driver->user->avatar_url, // Assuming this field exists or using default
+            'status' => $driver->status,
+        ]);
         $activeDriversCount = Driver::where('status', 'active')->count();
         $totalOfficesCount = ($officeIds !== null) ? count($officeIds) : Office::where('status', 'active')->count();
 
@@ -194,6 +200,7 @@ class DashboardController extends Controller
             ],
             'recent_shipments' => $recentShipmentsResource,
             'office_performance' => $officePerformance,
+            'active_drivers' => $activeDrivers,
             'active_drivers_count' => $activeDriversCount,
             'total_offices_count' => $totalOfficesCount
         ]);
