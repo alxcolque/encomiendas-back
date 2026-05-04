@@ -22,13 +22,9 @@ class RouteValueController extends Controller
         $cityA = $request->query('city_a');
         $cityB = $request->query('city_b');
 
-        $routeValue = RouteValue::where(function ($query) use ($cityA, $cityB) {
-            $query->where('city_a', $cityA)
-                ->where('city_b', $cityB);
-        })->orWhere(function ($query) use ($cityA, $cityB) {
-            $query->where('city_a', $cityB)
-                ->where('city_b', $cityA);
-        })->first();
+        $routeValue = RouteValue::where('city_a', $cityA)
+            ->where('city_b', $cityB)
+            ->first();
 
         if (!$routeValue) {
             return response()->json(['data' => null]);
@@ -86,10 +82,10 @@ class RouteValueController extends Controller
         $factor = 0.47 / 217;
         $now = now();
 
-        // 2. Obtener rutas existentes y normalizar la clave (min_id-max_id)
+        // 2. Obtener rutas existentes (clave direccional: A-B)
         $existingRoutes = RouteValue::all(['city_a', 'city_b'])
             ->mapWithKeys(function ($rv) {
-                $key = min($rv->city_a, $rv->city_b) . '-' . max($rv->city_a, $rv->city_b);
+                $key = $rv->city_a . '-' . $rv->city_b;
                 return [$key => true];
             });
 
@@ -97,9 +93,11 @@ class RouteValueController extends Controller
         $cityList = $cities->values();
         $count = $cityList->count();
 
-        // 3. Comparar todas las combinaciones posibles
+        // 3. Comparar todas las ciudades con todas (Direccional A->B)
         for ($i = 0; $i < $count; $i++) {
-            for ($j = $i + 1; $j < $count; $j++) {
+            for ($j = 0; $j < $count; $j++) {
+                if ($i === $j) continue; // No permitir rutas entre la misma ciudad
+
                 $cityA = $cityList[$i];
                 $cityB = $cityList[$j];
 
@@ -111,10 +109,10 @@ class RouteValueController extends Controller
                     continue;
                 }
 
-                // Generar clave normalizada para búsqueda rápida
-                $key = min($cityA->id, $cityB->id) . '-' . max($cityA->id, $cityB->id);
+                // Generar clave direccional para búsqueda rápida
+                $key = $cityA->id . '-' . $cityB->id;
 
-                // Si no existe (no está asignada), se crea
+                // Si no existe, se crea
                 if (!$existingRoutes->has($key)) {
                     $distance = $this->calculateDistance(
                         (float)$locA[0], (float)$locA[1],
@@ -131,13 +129,12 @@ class RouteValueController extends Controller
                         'updated_at' => $now,
                     ];
 
-                    // Evitar duplicados en el mismo proceso si hubiera inconsistencias
                     $existingRoutes->put($key, true);
                 }
             }
         }
 
-        // 4. Inserción masiva en bloques para eficiencia
+        // 4. Inserción masiva en bloques
         if (!empty($newRoutes)) {
             foreach (array_chunk($newRoutes, 100) as $chunk) {
                 RouteValue::insert($chunk);
