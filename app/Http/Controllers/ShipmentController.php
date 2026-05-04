@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Invoice;
 use App\Models\Shipment;
 use Illuminate\Http\Request;
 
@@ -145,7 +146,10 @@ class ShipmentController extends Controller
 
         if ($request->filled('current_status') && $request->current_status === 'delivered') {
             if (!$shipment->invoice()->exists()) {
-                return response()->json(['message' => 'No se puede marcar como entregado si no ha sido pagado.'], 400);
+                $message = $shipment->tracking_pay == 2
+                    ? 'Debe realizar el pago para entregar este envío (Pago en Destino).'
+                    : 'No se puede marcar como entregado si no ha sido pagado.';
+                return response()->json(['message' => $message], 400);
             }
         }
 
@@ -213,6 +217,13 @@ class ShipmentController extends Controller
 
         $newStatus = $states[$currentIndex + 1];
 
+        if ($newStatus === 'delivered' && !$shipment->invoice()->exists()) {
+            $message = $shipment->tracking_pay == 2
+                ? 'Debe realizar el pago en destino antes de marcar como entregado.'
+                : 'No se puede entregar un envío que no ha sido pagado.';
+            return response()->json(['message' => $message], 400);
+        }
+
         $shipment->update([
             'current_status' => $newStatus
         ]);
@@ -226,20 +237,26 @@ class ShipmentController extends Controller
     public function generateInvoice(Request $request, Shipment $shipment)
     {
         $request->validate([
-            'invoice_type' => 'required|string',
             'invoice_name' => 'nullable|string',
             'invoice_nit' => 'nullable|string',
+            'business_name' => 'nullable|string',
+            'nit_ci_emisor' => 'nullable|string',
         ]);
 
         if ($shipment->invoice) {
-            return response()->json(['message' => 'Invoice already exists for this shipment.'], 400);
+            return response()->json(['message' => 'Ya existe una factura para esta encomienda.'], 400);
         }
 
-        $invoice = \App\Models\Invoice::create([
-            'type'           => $request->invoice_type,
+        $typeInv = "sin";
+        if (Invoice::where('shipment_id', $shipment->id)) {
+            $typeInv = "con";
+        }
+
+        $invoice = Invoice::create([
+            'type'           => $typeInv,
             'shipment_id'    => $shipment->id,
-            'business_name'  => env('VITE_BUSINESS_NAME', 'KOLMOX EXPRESS'),
-            'nit_ci_emisor'  => env('VITE_BUSINESS_NIT', '456489012'),
+            'business_name'  => $request->business_name ?? 'KOLMOX',
+            'nit_ci_emisor'  => $request->nit_ci_emisor ?? '11192632',
             'receipt_name'   => $request->invoice_name ?? $shipment->sender_name ?? 'S/N',
             'doc_num'        => $request->invoice_nit ?? $shipment->sender_ci ?? '0',
             'details'        => [
@@ -260,10 +277,10 @@ class ShipmentController extends Controller
         ]);
 
         // Ensure shipment with_invoice and status is updated
-        $shipment->update([
+        /* $shipment->update([
             'with_invoice' => true,
             'current_status' => 'created'
-        ]);
+        ]); */
 
         return response()->json([
             'message' => 'Invoice created successfully.',
