@@ -22,9 +22,13 @@ class RouteValueController extends Controller
         $cityA = $request->query('city_a');
         $cityB = $request->query('city_b');
 
-        $routeValue = RouteValue::where('city_a', $cityA)
-            ->where('city_b', $cityB)
-            ->first();
+        $routeValue = RouteValue::where(function ($query) use ($cityA, $cityB) {
+            $query->where('city_a', $cityA)
+                ->where('city_b', $cityB);
+        })->orWhere(function ($query) use ($cityA, $cityB) {
+            $query->where('city_a', $cityB)
+                ->where('city_b', $cityA);
+        })->first();
 
         if (!$routeValue) {
             return response()->json(['data' => null]);
@@ -77,22 +81,29 @@ class RouteValueController extends Controller
 
     public function generate()
     {
-        $cities = City::all();
+        // 1. Obtener ciudades con ubicación
+        $cities = City::whereNotNull('location')->get();
         $factor = 0.47 / 217;
-        $createdCount = 0;
+        $now = now();
 
-        foreach ($cities as $cityA) {
-            foreach ($cities as $cityB) {
-                // Skip if same city
-                if ($cityA->id === $cityB->id) {
-                    continue;
-                }
+        // 2. Obtener rutas existentes y normalizar la clave (min_id-max_id)
+        $existingRoutes = RouteValue::all(['city_a', 'city_b'])
+            ->mapWithKeys(function ($rv) {
+                $key = min($rv->city_a, $rv->city_b) . '-' . max($rv->city_a, $rv->city_b);
+                return [$key => true];
+            });
 
-                // Check if both have location
-                if (!$cityA->location || !$cityB->location) {
-                    continue;
-                }
+        $newRoutes = [];
+        $cityList = $cities->values();
+        $count = $cityList->count();
 
+        // 3. Comparar todas las combinaciones posibles
+        for ($i = 0; $i < $count; $i++) {
+            for ($j = $i + 1; $j < $count; $j++) {
+                $cityA = $cityList[$i];
+                $cityB = $cityList[$j];
+
+                // Validar formato de ubicación
                 $locA = array_map('trim', explode(',', $cityA->location));
                 $locB = array_map('trim', explode(',', $cityB->location));
 
@@ -100,33 +111,42 @@ class RouteValueController extends Controller
                     continue;
                 }
 
-                $lat1 = (float)$locA[0];
-                $lon1 = (float)$locA[1];
-                $lat2 = (float)$locB[0];
-                $lon2 = (float)$locB[1];
+                // Generar clave normalizada para búsqueda rápida
+                $key = min($cityA->id, $cityB->id) . '-' . max($cityA->id, $cityB->id);
 
-                $distance = $this->calculateDistance($lat1, $lon1, $lat2, $lon2);
-                $value = round($distance * $factor, 2);
+                // Si no existe (no está asignada), se crea
+                if (!$existingRoutes->has($key)) {
+                    $distance = $this->calculateDistance(
+                        (float)$locA[0], (float)$locA[1],
+                        (float)$locB[0], (float)$locB[1]
+                    );
 
-                // Insert if not exists
-                $exists = RouteValue::where('city_a', $cityA->id)
-                    ->where('city_b', $cityB->id)
-                    ->exists();
+                    $value = round($distance * $factor, 2);
 
-                if (!$exists) {
-                    RouteValue::create([
-                        'city_a' => $cityA->id,
-                        'city_b' => $cityB->id,
-                        'value' => $value
-                    ]);
-                    $createdCount++;
+                    $newRoutes[] = [
+                        'city_a'     => $cityA->id,
+                        'city_b'     => $cityB->id,
+                        'value'      => $value,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+
+                    // Evitar duplicados en el mismo proceso si hubiera inconsistencias
+                    $existingRoutes->put($key, true);
                 }
+            }
+        }
+
+        // 4. Inserción masiva en bloques para eficiencia
+        if (!empty($newRoutes)) {
+            foreach (array_chunk($newRoutes, 100) as $chunk) {
+                RouteValue::insert($chunk);
             }
         }
 
         return response()->json([
             'message' => 'Rutas generadas correctamente',
-            'created' => $createdCount
+            'created' => count($newRoutes)
         ]);
     }
 }
