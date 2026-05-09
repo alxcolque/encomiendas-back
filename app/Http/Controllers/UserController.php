@@ -198,7 +198,7 @@ class UserController extends Controller
         }
 
         // Si es un Usuario interno (Admin, Driver, etc), se carga su perfil de conductor y sus agencias asignadas
-        return response()->json($user->load(['driverProfile', 'offices']));
+        return response()->json($user->load(['driverProfile', 'offices.city']));
     }
 
     // ✅ Actualizar nombre, email, phone o foto (Perfil propio)

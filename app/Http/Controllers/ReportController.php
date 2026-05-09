@@ -15,11 +15,20 @@ class ReportController extends Controller
         $user = request()->user();
         if ($user) {
             if ($user->role === 'worker') {
-                $officeIds = $user->offices->pluck('id')->toArray();
-                $query->where(function ($q) use ($officeIds) {
-                    $q->whereIn('origin_office_id', $officeIds)
-                        ->orWhereIn('destination_office_id', $officeIds);
-                });
+                // Filter only by the offices directly assigned in office_user
+                $officeIds = DB::table('office_user')
+                    ->where('user_id', $user->id)
+                    ->pluck('office_id')
+                    ->toArray();
+
+                if (empty($officeIds)) {
+                    $query->whereRaw('1 = 0');
+                } else {
+                    $query->where(function ($q) use ($officeIds) {
+                        $q->whereIn('origin_office_id', $officeIds)
+                            ->orWhereIn('destination_office_id', $officeIds);
+                    });
+                }
             } elseif ($user->role === 'company') {
                 $query->where(function ($q) use ($user) {
                     $q->where('origin_office_id', $user->id)
@@ -29,6 +38,7 @@ class ReportController extends Controller
         }
         return $query;
     }
+
 
     public function index(Request $request)
     {

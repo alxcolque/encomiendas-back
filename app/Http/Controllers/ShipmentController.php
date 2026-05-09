@@ -15,17 +15,15 @@ class ShipmentController extends Controller
 
         if ($user) {
             if ($user->role === 'worker') {
-                $cityIds = \Illuminate\Support\Facades\DB::table('office_user')
-                    ->join('offices', 'office_user.office_id', '=', 'offices.id')
-                    ->where('office_user.user_id', $user->id)
-                    ->pluck('offices.city_id')
-                    ->unique()
+                // Filter only by the offices directly assigned to this worker in office_user
+                $officeIds = \Illuminate\Support\Facades\DB::table('office_user')
+                    ->where('user_id', $user->id)
+                    ->pluck('office_id')
                     ->toArray();
 
-                if (empty($cityIds)) {
+                if (empty($officeIds)) {
                     $query->whereRaw('1 = 0');
                 } else {
-                    $officeIds = \App\Models\Office::whereIn('city_id', $cityIds)->pluck('id')->toArray();
                     $query->where(function ($q) use ($officeIds) {
                         $q->whereIn('origin_office_id', $officeIds)
                             ->orWhereIn('destination_office_id', $officeIds);

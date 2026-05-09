@@ -15,7 +15,8 @@ class DashboardController extends Controller
     private $cachedOfficeIds = -1;
 
     /**
-     * Get IDs of all offices in the cities assigned to the current worker.
+     * Get IDs of the offices directly assigned to the current worker in office_user.
+     * Returns null for admin (sees all), [] for unassigned workers.
      */
     private function getTargetOfficeIds()
     {
@@ -28,20 +29,17 @@ class DashboardController extends Controller
             return $this->cachedOfficeIds = null; // Admin sees all
         }
 
-        // Get cities assigned to worker via their offices
-        $cityIds = DB::table('office_user')
-            ->join('offices', 'office_user.office_id', '=', 'offices.id')
-            ->where('office_user.user_id', $user->id)
-            ->pluck('offices.city_id')
-            ->unique()
-            ->toArray();
+        if ($user->role === 'worker') {
+            // Only the offices directly assigned in office_user
+            $officeIds = DB::table('office_user')
+                ->where('user_id', $user->id)
+                ->pluck('office_id')
+                ->toArray();
 
-        if (empty($cityIds)) {
-            return $this->cachedOfficeIds = [];
+            return $this->cachedOfficeIds = $officeIds;
         }
 
-        // Get all offices in those cities
-        return $this->cachedOfficeIds = Office::whereIn('city_id', $cityIds)->pluck('id')->toArray();
+        return $this->cachedOfficeIds = [];
     }
 
     /**
@@ -54,9 +52,9 @@ class DashboardController extends Controller
 
         if ($user->role === 'worker') {
             $officeIds = $this->getTargetOfficeIds();
-            
+
             if (empty($officeIds)) {
-                $query->whereRaw('1 = 0'); // Force empty result
+                $query->whereRaw('1 = 0');
                 return $query;
             }
 
@@ -70,9 +68,10 @@ class DashboardController extends Controller
                     ->orWhere('destination_office_id', $user->id);
             });
         }
-        
+
         return $query;
     }
+
 
     public function index()
     {
@@ -86,7 +85,7 @@ class DashboardController extends Controller
         $officeIds = $this->getTargetOfficeIds();
         $cityName = null;
         if ($user->role === 'worker') {
-            // Get the name of the first assigned city for the header
+            // Get the name of the assigned office's city (first assigned office)
             $cityName = DB::table('office_user')
                 ->join('offices', 'office_user.office_id', '=', 'offices.id')
                 ->join('cities', 'offices.city_id', '=', 'cities.id')

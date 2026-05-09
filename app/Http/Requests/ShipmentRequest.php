@@ -11,6 +11,14 @@ class ShipmentRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'sender_id'   => $this->sender_id   !== '' ? $this->sender_id   : null,
+            'receiver_id' => $this->receiver_id !== '' ? $this->receiver_id : null,
+        ]);
+    }
+
     public function rules(): array
     {
         $shipmentId = $this->route('shipment') ? $this->route('shipment')->id : null;

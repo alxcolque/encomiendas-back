@@ -47,7 +47,7 @@ class AuthController extends Controller
         );
 
         return response()->json([
-            'user'        => $user->load('offices'),
+            'user'        => $user->load('offices.city'),
             'accessToken' => $accessToken,
         ])->withCookie($cookie);
     }
@@ -71,7 +71,7 @@ class AuthController extends Controller
         $newAccessToken = $user->createToken('access_token', ['*'], now()->addMinutes(15))->plainTextToken;
 
         return response()->json([
-            'user'        => $user->load('offices'),
+            'user'        => $user->load('offices.city'),
             'accessToken' => $newAccessToken,
         ]);
     }

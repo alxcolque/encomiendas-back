@@ -14,9 +14,14 @@ class Shipment extends Model
         static::creating(function ($shipment) {
             if (empty($shipment->tracking_code)) {
                 /* KOL-(dos letras del origen)-(dos letras del destino)-(numeros incrementales) */
-                $origin_office = Office::find($shipment->origin_office_id);
-                $destination_office = Office::find($shipment->destination_office_id);
-                $shipment->tracking_code = 'KOL-' . strtoupper(substr($origin_office->city->name, 0, 2)) . '-' . strtoupper(substr($destination_office->city->name, 0, 2)) . '-' . str_pad(Shipment::count() + 1, 4, '0', STR_PAD_LEFT);
+                $origin_office = Office::with('city')->find($shipment->origin_office_id);
+                $destination_office = Office::with('city')->find($shipment->destination_office_id);
+                $originName = $origin_office?->city?->name ?? 'XX';
+                $destName   = $destination_office?->city?->name ?? 'XX';
+                $shipment->tracking_code = 'KOL-'
+                    . strtoupper(substr($originName, 0, 2))
+                    . '-' . strtoupper(substr($destName, 0, 2))
+                    . '-' . str_pad(Shipment::count() + 1, 4, '0', STR_PAD_LEFT);
             }
         });
     }
