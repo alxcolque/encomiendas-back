@@ -48,13 +48,21 @@ class Shipment extends Model
         'with_invoice',
         'from_client',
         'discount',
+        // favorites
+        'is_favorite',
+        'amount_fav',
+        'product_content_fav',
+        'percent_fav',
     ];
 
     protected $casts = [
         'estimated_delivery' => 'datetime',
         'with_invoice' => 'boolean',
         'from_client' => 'boolean',
+        'is_favorite' => 'boolean',
         'discount' => 'decimal:2',
+        'amount_fav' => 'decimal:2',
+        'percent_fav' => 'decimal:2',
     ];
 
     public function originOffice()

@@ -53,6 +53,12 @@ class ShipmentRequest extends FormRequest
             'with_invoice' => 'nullable|boolean',
             'invoice_nit' => 'required_if:with_invoice,true|string|max:20',
             'invoice_name' => 'required_if:with_invoice,true|string|max:255',
+
+            // Favorites
+            'is_favorite' => 'nullable|boolean',
+            'amount_fav' => 'nullable|numeric|min:0',
+            'product_content_fav' => 'nullable|string|max:255',
+            'percent_fav' => 'nullable|numeric|min:0|max:100',
         ];
 
         if ($this->isMethod('patch')) {

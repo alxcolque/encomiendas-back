@@ -49,6 +49,10 @@ class ShipmentResource extends JsonResource
             'track_type' => $this->track_type,
             'tracking_pay' => $this->tracking_pay,
             'observation' => $this->observation,
+            'is_favorite' => (bool) $this->is_favorite,
+            'amount_fav' => $this->amount_fav,
+            'product_content_fav' => $this->product_content_fav,
+            'percent_fav' => $this->percent_fav,
             'origin_office' => new OfficeResource($this->whenLoaded('originOffice')),
             'destination_office' => new OfficeResource($this->whenLoaded('destinationOffice')),
             'events' => ShipmentEventResource::collection($this->whenLoaded('events', function () {
