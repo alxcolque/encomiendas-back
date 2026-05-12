@@ -142,6 +142,14 @@ class ShipmentController extends Controller
             ]);
         }
 
+        // Validate receiver before transition to in_transit
+        if ($request->filled('current_status') && $request->current_status === 'in_transit') {
+            $hasReceiver = isset($data['receiver_id']) || (!isset($data['receiver_id']) && $shipment->receiver_id);
+            if (!$hasReceiver) {
+                return response()->json(['message' => 'Debe asignar un destinatario para poder enviar (pasar a estado in_transit).'], 400);
+            }
+        }
+
         if ($request->filled('current_status') && $request->current_status === 'delivered') {
             if (!$shipment->invoice()->exists()) {
                 $message = $shipment->tracking_pay == 2
@@ -149,6 +157,18 @@ class ShipmentController extends Controller
                     : 'No se puede marcar como entregado si no ha sido pagado.';
                 return response()->json(['message' => $message], 400);
             }
+        }
+
+        // Clean up client fields from data so they aren't passed to the shipment model
+        unset($data['sender_name'], $data['sender_ci'], $data['sender_phone']);
+        unset($data['receiver_name'], $data['receiver_ci'], $data['receiver_phone']);
+        
+        // Ensure we don't accidentally overwrite sender_id or receiver_id with null
+        if (array_key_exists('sender_id', $data) && is_null($data['sender_id'])) {
+            unset($data['sender_id']);
+        }
+        if (array_key_exists('receiver_id', $data) && is_null($data['receiver_id'])) {
+            unset($data['receiver_id']);
         }
 
         $shipment->update($data);
@@ -215,6 +235,10 @@ class ShipmentController extends Controller
 
         $newStatus = $states[$currentIndex + 1];
 
+        if ($newStatus === 'in_transit' && !$shipment->receiver_id) {
+            return response()->json(['message' => 'Debe asignar un destinatario para poder enviar (pasar a estado in_transit).'], 400);
+        }
+
         if ($newStatus === 'delivered' && !$shipment->invoice()->exists()) {
             $message = $shipment->tracking_pay == 2
                 ? 'Debe realizar el pago en destino antes de marcar como entregado.'
@@ -243,6 +267,10 @@ class ShipmentController extends Controller
 
         if ($shipment->invoice) {
             return response()->json(['message' => 'Ya existe una factura para esta encomienda.'], 400);
+        }
+
+        if (!$shipment->receiver_id) {
+            return response()->json(['message' => 'Debe asignar un destinatario para poder realizar el pago.'], 400);
         }
 
         $typeInv = "sin";

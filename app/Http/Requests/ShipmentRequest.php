@@ -13,10 +13,16 @@ class ShipmentRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $this->merge([
-            'sender_id'   => $this->sender_id   !== '' ? $this->sender_id   : null,
-            'receiver_id' => $this->receiver_id !== '' ? $this->receiver_id : null,
-        ]);
+        $mergeData = [];
+        if ($this->has('sender_id')) {
+            $mergeData['sender_id'] = $this->sender_id !== '' ? $this->sender_id : null;
+        }
+        if ($this->has('receiver_id')) {
+            $mergeData['receiver_id'] = $this->receiver_id !== '' ? $this->receiver_id : null;
+        }
+        if (!empty($mergeData)) {
+            $this->merge($mergeData);
+        }
     }
 
     public function rules(): array
